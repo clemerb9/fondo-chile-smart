@@ -206,6 +206,7 @@ const Simulador = () => {
           </div>
         </div>
       </div>
+      <HowToStart />
     </div>
   );
 };
