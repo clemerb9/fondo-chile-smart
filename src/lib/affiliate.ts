@@ -11,7 +11,7 @@ const SITES: Record<string, string> = {
   Banchile: "https://www.banchileinversiones.cl/wps/wcm/connect/portal/inversiones/home/productos/fondos-mutuos",
 };
 
-export const FINTUAL_AFFILIATE = `https://fintual.cl?${UTM}`;
+export const FINTUAL_AFFILIATE = "https://fintual.cl/r/clementer9b";
 
 export function getFundCta(f: Fondo): { href: string; label: string; isAffiliate: boolean } {
   if (f.administradora === "Fintual") {
