@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { fondos } from "@/data/funds";
 import { TrendingUp, Wallet, PiggyBank } from "lucide-react";
+import { HowToStart } from "@/components/HowToStart";
 
 const formatCLP = (n: number) =>
   new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 0 }).format(n);
@@ -206,6 +207,7 @@ const Simulador = () => {
           </div>
         </div>
       </div>
+      <HowToStart />
     </div>
   );
 };

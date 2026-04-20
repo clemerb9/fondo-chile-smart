@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import { ArrowDown, ArrowUp, ArrowUpDown, ExternalLink, Filter, Info } from "lucide-react";
 import { fondos, ULTIMA_ACTUALIZACION, type Riesgo } from "@/data/funds";
+import { getFundCta } from "@/lib/affiliate";
 import { cn } from "@/lib/utils";
 
 const formatFecha = (iso: string) =>
@@ -147,13 +147,25 @@ const Comparador = () => {
                   </td>
                   <td className="px-6 py-5 text-muted-foreground">{f.comision.toFixed(2)}%</td>
                   <td className="px-6 py-5 text-right">
-                    <Link
-                      to={`/simulador?fund=${f.id}`}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary-glow transition-smooth"
-                    >
-                      Invertir
-                      <ExternalLink className="h-3.5 w-3.5" />
-                    </Link>
+                    {(() => {
+                      const cta = getFundCta(f);
+                      return (
+                        <a
+                          href={cta.href}
+                          target="_blank"
+                          rel="noopener noreferrer sponsored"
+                          className={cn(
+                            "inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-smooth",
+                            cta.isAffiliate
+                              ? "bg-primary text-primary-foreground hover:bg-primary-glow"
+                              : "bg-secondary text-primary border border-border hover:bg-muted"
+                          )}
+                        >
+                          {cta.label}
+                          <ExternalLink className="h-3.5 w-3.5" />
+                        </a>
+                      );
+                    })()}
                   </td>
                 </tr>
               ))}
@@ -189,13 +201,25 @@ const Comparador = () => {
                 <div className="font-display font-semibold text-primary">{f.comision.toFixed(2)}%</div>
               </div>
             </div>
-            <Link
-              to={`/simulador?fund=${f.id}`}
-              className="mt-3 inline-flex w-full items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-semibold"
-            >
-              Invertir
-              <ExternalLink className="h-3.5 w-3.5" />
-            </Link>
+            {(() => {
+              const cta = getFundCta(f);
+              return (
+                <a
+                  href={cta.href}
+                  target="_blank"
+                  rel="noopener noreferrer sponsored"
+                  className={cn(
+                    "mt-3 inline-flex w-full items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold transition-smooth",
+                    cta.isAffiliate
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-secondary text-primary border border-border"
+                  )}
+                >
+                  {cta.label}
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </a>
+              );
+            })()}
           </div>
         ))}
       </div>
