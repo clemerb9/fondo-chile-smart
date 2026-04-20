@@ -1,6 +1,7 @@
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { FINTUAL_AFFILIATE } from "@/lib/affiliate";
+import { trackEvent } from "@/lib/analytics";
 
 const STORAGE_KEY = "fs-affiliate-banner-dismissed";
 
@@ -26,6 +27,7 @@ export const StickyAffiliateBanner = () => {
           href={FINTUAL_AFFILIATE}
           target="_blank"
           rel="noopener noreferrer sponsored"
+          onClick={() => trackEvent("fintual_cta_clicked", { location: "sticky_banner" })}
           className="flex-1 flex items-center justify-between gap-3"
         >
           <div className="min-w-0">

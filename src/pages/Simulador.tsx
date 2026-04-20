@@ -4,6 +4,7 @@ import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YA
 import { fondos } from "@/data/funds";
 import { TrendingUp, Wallet, PiggyBank } from "lucide-react";
 import { HowToStart } from "@/components/HowToStart";
+import { trackEvent } from "@/lib/analytics";
 
 const formatCLP = (n: number) =>
   new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 0 }).format(n);
@@ -51,6 +52,20 @@ const Simulador = () => {
       ganancia: Math.round(balance - aportado),
     };
   }, [montoInicial, aporteMensual, plazo, rentabilidad]);
+
+  // Track simulator usage (debounced) when key inputs change
+  useEffect(() => {
+    const t = setTimeout(() => {
+      trackEvent("simulator_used", {
+        fund: selectedFund,
+        monto_inicial: montoInicial,
+        aporte_mensual: aporteMensual,
+        plazo,
+        rentabilidad,
+      });
+    }, 1000);
+    return () => clearTimeout(t);
+  }, [selectedFund, montoInicial, aporteMensual, plazo, rentabilidad]);
 
   return (
     <div className="container py-12 md:py-16">

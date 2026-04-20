@@ -1,5 +1,6 @@
 import { UserCheck, FileSearch, Rocket, ArrowRight } from "lucide-react";
 import { FINTUAL_AFFILIATE } from "@/lib/affiliate";
+import { trackEvent } from "@/lib/analytics";
 
 const steps = [
   {
@@ -57,6 +58,7 @@ export const HowToStart = () => {
           href={FINTUAL_AFFILIATE}
           target="_blank"
           rel="noopener noreferrer sponsored"
+          onClick={() => trackEvent("fintual_cta_clicked", { location: "how_to_start" })}
           className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl gradient-accent text-accent-foreground font-semibold transition-smooth hover:shadow-glow hover:scale-[1.02] shrink-0"
         >
           Abrir cuenta gratis en Fintual

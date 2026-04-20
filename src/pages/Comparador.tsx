@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, ArrowUpDown, ExternalLink, Filter, Info } from "lucide-react";
 import { fondos, ULTIMA_ACTUALIZACION, type Riesgo } from "@/data/funds";
 import { getFundCta } from "@/lib/affiliate";
+import { trackEvent } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
 const formatFecha = (iso: string) =>
@@ -88,7 +89,10 @@ const Comparador = () => {
           {riesgoFilters.map((r) => (
             <button
               key={r}
-              onClick={() => setRiesgo(r)}
+              onClick={() => {
+                setRiesgo(r);
+                trackEvent("comparador_filtered", { riesgo: r });
+              }}
               className={cn(
                 "px-4 py-2 rounded-full text-sm font-medium transition-smooth border",
                 riesgo === r
@@ -154,6 +158,7 @@ const Comparador = () => {
                           href={cta.href}
                           target="_blank"
                           rel="noopener noreferrer sponsored"
+                          onClick={() => cta.isAffiliate && trackEvent("fintual_cta_clicked", { location: "comparador_table", fund: f.nombre })}
                           className={cn(
                             "inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-smooth",
                             cta.isAffiliate
@@ -208,6 +213,7 @@ const Comparador = () => {
                   href={cta.href}
                   target="_blank"
                   rel="noopener noreferrer sponsored"
+                  onClick={() => cta.isAffiliate && trackEvent("fintual_cta_clicked", { location: "comparador_card", fund: f.nombre })}
                   className={cn(
                     "mt-3 inline-flex w-full items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold transition-smooth",
                     cta.isAffiliate
