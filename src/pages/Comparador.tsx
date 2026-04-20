@@ -1,8 +1,11 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowDown, ArrowUp, ArrowUpDown, ExternalLink, Filter } from "lucide-react";
-import { fondos, type Riesgo } from "@/data/funds";
+import { ArrowDown, ArrowUp, ArrowUpDown, ExternalLink, Filter, Info } from "lucide-react";
+import { fondos, ULTIMA_ACTUALIZACION, type Riesgo } from "@/data/funds";
 import { cn } from "@/lib/utils";
+
+const formatFecha = (iso: string) =>
+  new Date(iso).toLocaleDateString("es-CL", { day: "2-digit", month: "long", year: "numeric" });
 
 type SortKey = "rent1" | "rent3" | "comision" | null;
 type SortDir = "asc" | "desc";
@@ -46,14 +49,33 @@ const Comparador = () => {
 
   return (
     <div className="container py-12 md:py-16">
-      <div className="max-w-3xl mb-10">
+      <div className="max-w-3xl mb-8">
         <p className="text-sm font-semibold text-accent uppercase tracking-wider mb-3">Comparador</p>
         <h1 className="font-display text-4xl md:text-5xl font-bold text-primary mb-4 text-balance">
           Encuentra el fondo que mejor se adapta a ti
         </h1>
         <p className="text-lg text-muted-foreground">
-          Filtra por nivel de riesgo y ordena por rentabilidad o comisión. Datos referenciales.
+          Filtra por nivel de riesgo y ordena por rentabilidad o comisión.
         </p>
+      </div>
+
+      {/* Aviso transparencia de datos */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 mb-6 rounded-xl bg-accent-soft/60 border border-accent/20">
+        <div className="flex items-start gap-3">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent/15 text-accent">
+            <Info className="h-4 w-4" strokeWidth={2.5} />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-primary">Datos de referencia — actualización pendiente</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Cifras orientativas basadas en información pública de las administradoras. Verifica en el sitio oficial antes de invertir.
+            </p>
+          </div>
+        </div>
+        <div className="text-xs text-muted-foreground sm:text-right shrink-0 pl-11 sm:pl-0">
+          <span className="block font-medium text-primary">Última actualización</span>
+          <time dateTime={ULTIMA_ACTUALIZACION}>{formatFecha(ULTIMA_ACTUALIZACION)}</time>
+        </div>
       </div>
 
       {/* Filtros */}
