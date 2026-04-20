@@ -10,6 +10,10 @@ export interface Fondo {
   comision: number;
 }
 
+// Datos referenciales basados en información pública de las administradoras.
+// Última revisión manual:
+export const ULTIMA_ACTUALIZACION = "2025-03-01";
+
 export const fondos: Fondo[] = [
   { id: "1", nombre: "Fintual Conservador Streep", administradora: "Fintual", rent1: 5.8, rent3: 4.9, riesgo: "Conservador", comision: 0.49 },
   { id: "2", nombre: "Fintual Moderate Pit", administradora: "Fintual", rent1: 9.4, rent3: 7.6, riesgo: "Moderado", comision: 0.69 },
