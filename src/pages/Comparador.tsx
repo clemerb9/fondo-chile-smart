@@ -11,10 +11,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 const formatFecha = (iso: string) =>
   new Date(iso).toLocaleDateString("es-CL", { day: "2-digit", month: "long", year: "numeric" });
 
-const formatCLP = (n: number | null) =>
-  n == null
-    ? "—"
-    : new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 2 }).format(n);
+const formatCLP = (n: number | null): string => {
+  if (n == null) return "Sin datos";
+  // Always show 2 decimals with Chilean format: $1.371,93
+  const formatted = new Intl.NumberFormat("es-CL", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(n);
+  return `$${formatted}`;
+};
 
 type SortKey = "rent1" | "rent3" | "comision" | "precio" | null;
 type SortDir = "asc" | "desc";
