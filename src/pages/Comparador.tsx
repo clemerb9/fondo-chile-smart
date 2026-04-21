@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, ArrowUpDown, ExternalLink, Filter, Info } from "lucide-react";
 import { fondos, ULTIMA_ACTUALIZACION, type Riesgo } from "@/data/funds";
 import { getFundCta } from "@/lib/affiliate";
@@ -136,8 +136,8 @@ const Comparador = () => {
             </thead>
             <tbody className="divide-y divide-border">
               {data.map((f) => (
-                <>
-                <tr key={f.id} className="hover:bg-muted/30 transition-smooth">
+                <Fragment key={f.id}>
+                <tr className="hover:bg-muted/30 transition-smooth">
                   <td className="px-6 pt-5 pb-2 font-semibold text-primary">{f.nombre}</td>
                   <td className="px-6 pt-5 pb-2 text-muted-foreground">{f.administradora}</td>
                   <td className={cn("px-6 pt-5 pb-2 font-display font-semibold", f.rent1 >= 0 ? "text-accent" : "text-destructive")}>
@@ -175,12 +175,12 @@ const Comparador = () => {
                     })()}
                   </td>
                 </tr>
-                <tr key={`${f.id}-meta`} className="border-b border-border/60">
+                <tr>
                   <td colSpan={7} className="px-6 pb-4 pt-0">
                     <CredibilityBadge />
                   </td>
                 </tr>
-                </>
+                </Fragment>
               ))}
             </tbody>
           </table>
