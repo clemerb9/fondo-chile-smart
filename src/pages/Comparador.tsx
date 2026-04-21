@@ -1,16 +1,60 @@
-import { Fragment, useMemo, useState } from "react";
-import { ArrowDown, ArrowUp, ArrowUpDown, ExternalLink, Filter, Info } from "lucide-react";
-import { fondos, ULTIMA_ACTUALIZACION, type Riesgo } from "@/data/funds";
+import { Fragment, useEffect, useMemo, useState } from "react";
+import { ArrowDown, ArrowUp, ArrowUpDown, ExternalLink, Filter, Info, AlertTriangle } from "lucide-react";
+import { fondos, ULTIMA_ACTUALIZACION, type Riesgo, type Fondo } from "@/data/funds";
+import { fetchFintualFunds, type FintualFund } from "@/lib/fintualApi";
 import { getFundCta } from "@/lib/affiliate";
 import { trackEvent } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 import { CredibilityBadge } from "@/components/CredibilityBadge";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const formatFecha = (iso: string) =>
   new Date(iso).toLocaleDateString("es-CL", { day: "2-digit", month: "long", year: "numeric" });
 
-type SortKey = "rent1" | "rent3" | "comision" | null;
+const formatCLP = (n: number | null) =>
+  n == null
+    ? "—"
+    : new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 2 }).format(n);
+
+type SortKey = "rent1" | "rent3" | "comision" | "precio" | null;
 type SortDir = "asc" | "desc";
+
+// Unified row shape for rendering both API and fallback data
+interface FundRow {
+  id: string;
+  nombre: string;
+  administradora: string;
+  riesgo: Riesgo;
+  rent1: number;
+  rent3: number;
+  comision: number;
+  precio: number | null;
+  fecha: string | null;
+}
+
+const fromFintual = (f: FintualFund): FundRow => ({
+  id: f.id,
+  nombre: f.nombre,
+  administradora: f.administradora,
+  riesgo: f.riesgo,
+  rent1: f.rent1,
+  rent3: f.rent3,
+  comision: f.comision,
+  precio: f.precio,
+  fecha: f.fecha,
+});
+
+const fromMock = (f: Fondo): FundRow => ({
+  id: f.id,
+  nombre: f.nombre,
+  administradora: f.administradora,
+  riesgo: f.riesgo,
+  rent1: f.rent1,
+  rent3: f.rent3,
+  comision: f.comision,
+  precio: null,
+  fecha: null,
+});
 
 const riesgoFilters: ("Todos" | Riesgo)[] = ["Todos", "Conservador", "Moderado", "Agresivo"];
 
@@ -22,19 +66,45 @@ const riesgoColor: Record<Riesgo, string> = {
 
 const Comparador = () => {
   const [riesgo, setRiesgo] = useState<"Todos" | Riesgo>("Todos");
-  const [sortKey, setSortKey] = useState<SortKey>("rent1");
+  const [sortKey, setSortKey] = useState<SortKey>("precio");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
 
+  const [rows, setRows] = useState<FundRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [usingFallback, setUsingFallback] = useState(false);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setLoading(true);
+    fetchFintualFunds(controller.signal)
+      .then((funds) => {
+        setRows(funds.map(fromFintual));
+        setUsingFallback(false);
+      })
+      .catch((err) => {
+        if (controller.signal.aborted) return;
+        console.warn("Fintual API failed, using fallback:", err);
+        setRows(fondos.map(fromMock));
+        setUsingFallback(true);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
+    return () => controller.abort();
+  }, []);
+
   const data = useMemo(() => {
-    let r = fondos.filter((f) => riesgo === "Todos" || f.riesgo === riesgo);
+    let r = rows.filter((f) => riesgo === "Todos" || f.riesgo === riesgo);
     if (sortKey) {
       r = [...r].sort((a, b) => {
-        const diff = a[sortKey] - b[sortKey];
+        const av = a[sortKey] ?? -Infinity;
+        const bv = b[sortKey] ?? -Infinity;
+        const diff = (av as number) - (bv as number);
         return sortDir === "asc" ? diff : -diff;
       });
     }
     return r;
-  }, [riesgo, sortKey, sortDir]);
+  }, [rows, riesgo, sortKey, sortDir]);
 
   const toggleSort = (k: SortKey) => {
     if (sortKey === k) setSortDir(sortDir === "asc" ? "desc" : "asc");
@@ -57,28 +127,49 @@ const Comparador = () => {
           Encuentra el fondo que mejor se adapta a ti
         </h1>
         <p className="text-lg text-muted-foreground">
-          Filtra por nivel de riesgo y ordena por rentabilidad o comisión.
+          Datos en vivo desde la API pública de Fintual. Filtra por riesgo y ordena por valor cuota o comisión.
         </p>
       </div>
 
-      {/* Aviso transparencia de datos */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 mb-6 rounded-xl bg-accent-soft/60 border border-accent/20">
-        <div className="flex items-start gap-3">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent/15 text-accent">
-            <Info className="h-4 w-4" strokeWidth={2.5} />
+      {/* Aviso fallback */}
+      {usingFallback && !loading && (
+        <div className="flex items-start gap-3 p-4 mb-6 rounded-xl bg-amber-50 border border-amber-200">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
+            <AlertTriangle className="h-4 w-4" strokeWidth={2.5} />
           </div>
           <div>
-            <p className="text-sm font-semibold text-primary">Datos de referencia — actualización pendiente</p>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Cifras orientativas basadas en información pública de las administradoras. Verifica en el sitio oficial antes de invertir.
+            <p className="text-sm font-semibold text-amber-900">Mostrando datos de referencia · cmfchile.cl</p>
+            <p className="text-xs text-amber-800 mt-0.5">
+              No pudimos conectar con la API de Fintual. Verifica las cifras en{" "}
+              <a href="https://www.cmfchile.cl" target="_blank" rel="noopener noreferrer" className="underline font-medium">
+                cmfchile.cl
+              </a>{" "}
+              antes de invertir.
             </p>
           </div>
         </div>
-        <div className="text-xs text-muted-foreground sm:text-right shrink-0 pl-11 sm:pl-0">
-          <span className="block font-medium text-primary">Última actualización</span>
-          <time dateTime={ULTIMA_ACTUALIZACION}>{formatFecha(ULTIMA_ACTUALIZACION)}</time>
+      )}
+
+      {/* Aviso transparencia de datos (cuando hay datos en vivo) */}
+      {!usingFallback && !loading && (
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 mb-6 rounded-xl bg-accent-soft/60 border border-accent/20">
+          <div className="flex items-start gap-3">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent/15 text-accent">
+              <Info className="h-4 w-4" strokeWidth={2.5} />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-primary">Valor cuota en vivo · API Fintual</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Precios actualizados directamente desde fintual.cl/api. Verifica en el sitio oficial antes de invertir.
+              </p>
+            </div>
+          </div>
+          <div className="text-xs text-muted-foreground sm:text-right shrink-0 pl-11 sm:pl-0">
+            <span className="block font-medium text-primary">Última revisión manual</span>
+            <time dateTime={ULTIMA_ACTUALIZACION}>{formatFecha(ULTIMA_ACTUALIZACION)}</time>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Filtros */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
@@ -107,116 +198,132 @@ const Comparador = () => {
         </div>
       </div>
 
+      {/* Loading skeletons */}
+      {loading && (
+        <>
+          <div className="hidden md:block bg-card rounded-2xl border border-border shadow-soft p-6 space-y-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="grid grid-cols-7 gap-4 items-center">
+                <Skeleton className="h-5 col-span-2" />
+                <Skeleton className="h-5" />
+                <Skeleton className="h-5" />
+                <Skeleton className="h-6 w-20 rounded-full" />
+                <Skeleton className="h-5" />
+                <Skeleton className="h-9 w-24 ml-auto rounded-lg" />
+              </div>
+            ))}
+          </div>
+          <div className="md:hidden space-y-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="bg-card rounded-2xl border border-border shadow-soft p-5 space-y-3">
+                <Skeleton className="h-5 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+                <div className="grid grid-cols-3 gap-2 pt-2">
+                  <Skeleton className="h-10" />
+                  <Skeleton className="h-10" />
+                  <Skeleton className="h-10" />
+                </div>
+                <Skeleton className="h-10 w-full rounded-lg" />
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
       {/* Tabla desktop */}
-      <div className="hidden md:block bg-card rounded-2xl border border-border shadow-soft overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-muted/50 border-b border-border">
-              <tr className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                <th className="px-6 py-4">Fondo</th>
-                <th className="px-6 py-4">Administradora</th>
-                <th className="px-6 py-4">
-                  <button onClick={() => toggleSort("rent1")} className="inline-flex items-center gap-1.5 hover:text-primary transition-smooth">
-                    Rent. 1 año <SortIcon k="rent1" />
-                  </button>
-                </th>
-                <th className="px-6 py-4">
-                  <button onClick={() => toggleSort("rent3")} className="inline-flex items-center gap-1.5 hover:text-primary transition-smooth">
-                    Rent. 3 años <SortIcon k="rent3" />
-                  </button>
-                </th>
-                <th className="px-6 py-4">Riesgo</th>
-                <th className="px-6 py-4">
-                  <button onClick={() => toggleSort("comision")} className="inline-flex items-center gap-1.5 hover:text-primary transition-smooth">
-                    Comisión <SortIcon k="comision" />
-                  </button>
-                </th>
-                <th className="px-6 py-4 text-right">Acción</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {data.map((f) => (
-                <Fragment key={f.id}>
-                <tr className="hover:bg-muted/30 transition-smooth">
-                  <td className="px-6 pt-5 pb-2 font-semibold text-primary">{f.nombre}</td>
-                  <td className="px-6 pt-5 pb-2 text-muted-foreground">{f.administradora}</td>
-                  <td className={cn("px-6 pt-5 pb-2 font-display font-semibold", f.rent1 >= 0 ? "text-accent" : "text-destructive")}>
-                    +{f.rent1.toFixed(1)}%
-                  </td>
-                  <td className={cn("px-6 pt-5 pb-2 font-display font-semibold", f.rent3 >= 0 ? "text-accent" : "text-destructive")}>
-                    +{f.rent3.toFixed(1)}%
-                  </td>
-                  <td className="px-6 pt-5 pb-2">
-                    <span className={cn("inline-flex px-3 py-1 rounded-full text-xs font-semibold", riesgoColor[f.riesgo])}>
-                      {f.riesgo}
-                    </span>
-                  </td>
-                  <td className="px-6 pt-5 pb-2 text-muted-foreground">{f.comision.toFixed(2)}%</td>
-                  <td className="px-6 pt-5 pb-2 text-right">
-                    {(() => {
-                      const cta = getFundCta(f);
-                      return (
-                        <a
-                          href={cta.href}
-                          target="_blank"
-                          rel="noopener noreferrer sponsored"
-                          onClick={() => cta.isAffiliate && trackEvent("fintual_cta_clicked", { location: "comparador_table", fund: f.nombre })}
-                          className={cn(
-                            "inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-smooth",
-                            cta.isAffiliate
-                              ? "bg-primary text-primary-foreground hover:bg-primary-glow"
-                              : "bg-secondary text-primary border border-border hover:bg-muted"
+      {!loading && (
+        <div className="hidden md:block bg-card rounded-2xl border border-border shadow-soft overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-muted/50 border-b border-border">
+                <tr className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  <th className="px-6 py-4">Fondo</th>
+                  <th className="px-6 py-4">Administradora</th>
+                  <th className="px-6 py-4">
+                    <button onClick={() => toggleSort("precio")} className="inline-flex items-center gap-1.5 hover:text-primary transition-smooth">
+                      Valor cuota (CLP) <SortIcon k="precio" />
+                    </button>
+                  </th>
+                  <th className="px-6 py-4">Riesgo</th>
+                  <th className="px-6 py-4 text-right">Acción</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {data.map((f) => {
+                  const cta = getFundCta({ ...f } as Fondo);
+                  return (
+                    <Fragment key={f.id}>
+                      <tr className="hover:bg-muted/30 transition-smooth">
+                        <td className="px-6 pt-5 pb-2 font-semibold text-primary">{f.nombre}</td>
+                        <td className="px-6 pt-5 pb-2 text-muted-foreground">{f.administradora}</td>
+                        <td className="px-6 pt-5 pb-2 font-display font-semibold text-primary">
+                          {formatCLP(f.precio)}
+                          {f.fecha && (
+                            <div className="text-[11px] text-muted-foreground font-sans font-normal mt-0.5">
+                              al {formatFecha(f.fecha)}
+                            </div>
                           )}
-                        >
-                          {cta.label}
-                          <ExternalLink className="h-3.5 w-3.5" />
-                        </a>
-                      );
-                    })()}
-                  </td>
-                </tr>
-                <tr>
-                  <td colSpan={7} className="px-6 pb-4 pt-0">
-                    <CredibilityBadge />
-                  </td>
-                </tr>
-                </Fragment>
-              ))}
-            </tbody>
-          </table>
+                        </td>
+                        <td className="px-6 pt-5 pb-2">
+                          <span className={cn("inline-flex px-3 py-1 rounded-full text-xs font-semibold", riesgoColor[f.riesgo])}>
+                            {f.riesgo}
+                          </span>
+                        </td>
+                        <td className="px-6 pt-5 pb-2 text-right">
+                          <a
+                            href={cta.href}
+                            target="_blank"
+                            rel="noopener noreferrer sponsored"
+                            onClick={() => cta.isAffiliate && trackEvent("fintual_cta_clicked", { location: "comparador_table", fund: f.nombre })}
+                            className={cn(
+                              "inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-smooth",
+                              cta.isAffiliate
+                                ? "bg-primary text-primary-foreground hover:bg-primary-glow"
+                                : "bg-secondary text-primary border border-border hover:bg-muted"
+                            )}
+                          >
+                            {cta.label}
+                            <ExternalLink className="h-3.5 w-3.5" />
+                          </a>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td colSpan={5} className="px-6 pb-4 pt-0">
+                          <CredibilityBadge />
+                        </td>
+                      </tr>
+                    </Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Cards mobile */}
-      <div className="md:hidden space-y-3">
-        {data.map((f) => (
-          <div key={f.id} className="bg-card rounded-2xl border border-border shadow-soft p-5">
-            <div className="flex justify-between items-start gap-3 mb-3">
-              <div>
-                <h3 className="font-semibold text-primary leading-tight">{f.nombre}</h3>
-                <p className="text-sm text-muted-foreground mt-0.5">{f.administradora}</p>
-              </div>
-              <span className={cn("inline-flex px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap", riesgoColor[f.riesgo])}>
-                {f.riesgo}
-              </span>
-            </div>
-            <div className="grid grid-cols-3 gap-2 py-3 border-y border-border">
-              <div>
-                <div className="text-xs text-muted-foreground">1 año</div>
-                <div className="font-display font-semibold text-accent">+{f.rent1.toFixed(1)}%</div>
-              </div>
-              <div>
-                <div className="text-xs text-muted-foreground">3 años</div>
-                <div className="font-display font-semibold text-accent">+{f.rent3.toFixed(1)}%</div>
-              </div>
-              <div>
-                <div className="text-xs text-muted-foreground">Comisión</div>
-                <div className="font-display font-semibold text-primary">{f.comision.toFixed(2)}%</div>
-              </div>
-            </div>
-            {(() => {
-              const cta = getFundCta(f);
-              return (
+      {!loading && (
+        <div className="md:hidden space-y-3">
+          {data.map((f) => {
+            const cta = getFundCta({ ...f } as Fondo);
+            return (
+              <div key={f.id} className="bg-card rounded-2xl border border-border shadow-soft p-5">
+                <div className="flex justify-between items-start gap-3 mb-3">
+                  <div>
+                    <h3 className="font-semibold text-primary leading-tight">{f.nombre}</h3>
+                    <p className="text-sm text-muted-foreground mt-0.5">{f.administradora}</p>
+                  </div>
+                  <span className={cn("inline-flex px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap", riesgoColor[f.riesgo])}>
+                    {f.riesgo}
+                  </span>
+                </div>
+                <div className="py-3 border-y border-border">
+                  <div className="text-xs text-muted-foreground">Valor cuota (CLP)</div>
+                  <div className="font-display font-semibold text-primary text-lg">{formatCLP(f.precio)}</div>
+                  {f.fecha && (
+                    <div className="text-[11px] text-muted-foreground mt-0.5">al {formatFecha(f.fecha)}</div>
+                  )}
+                </div>
                 <a
                   href={cta.href}
                   target="_blank"
@@ -232,17 +339,24 @@ const Comparador = () => {
                   {cta.label}
                   <ExternalLink className="h-3.5 w-3.5" />
                 </a>
-              );
-            })()}
-            <div className="mt-3 pt-3 border-t border-border">
-              <CredibilityBadge />
-            </div>
-          </div>
-        ))}
-      </div>
+                <div className="mt-3 pt-3 border-t border-border">
+                  <CredibilityBadge />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
-      {data.length === 0 && (
+      {!loading && data.length === 0 && (
         <div className="text-center py-12 text-muted-foreground">No hay fondos con este filtro.</div>
+      )}
+
+      {/* Footer note */}
+      {!loading && (
+        <p className="mt-6 text-center text-xs text-muted-foreground">
+          Fuente: API Fintual · Datos oficiales CMF Chile
+        </p>
       )}
     </div>
   );
