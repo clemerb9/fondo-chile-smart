@@ -234,6 +234,9 @@ const Comparador = () => {
                 </a>
               );
             })()}
+            <div className="mt-3 pt-3 border-t border-border">
+              <CredibilityBadge />
+            </div>
           </div>
         ))}
       </div>
