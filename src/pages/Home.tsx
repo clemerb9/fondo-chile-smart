@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { ArrowRight, BarChart3, Calculator, BookOpen, ShieldCheck, Sparkles, TrendingUp } from "lucide-react";
+import BudgetRule from "@/components/BudgetRule";
 
 const features = [
   {
@@ -78,6 +79,9 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* BUDGET RULE 50-30-20 */}
+      <BudgetRule />
 
       {/* FEATURES */}
       <section className="container py-20 md:py-28">
