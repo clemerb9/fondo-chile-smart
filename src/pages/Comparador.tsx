@@ -4,6 +4,7 @@ import { fondos, ULTIMA_ACTUALIZACION, type Riesgo } from "@/data/funds";
 import { getFundCta } from "@/lib/affiliate";
 import { trackEvent } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
+import { CredibilityBadge } from "@/components/CredibilityBadge";
 
 const formatFecha = (iso: string) =>
   new Date(iso).toLocaleDateString("es-CL", { day: "2-digit", month: "long", year: "numeric" });
@@ -135,22 +136,23 @@ const Comparador = () => {
             </thead>
             <tbody className="divide-y divide-border">
               {data.map((f) => (
+                <>
                 <tr key={f.id} className="hover:bg-muted/30 transition-smooth">
-                  <td className="px-6 py-5 font-semibold text-primary">{f.nombre}</td>
-                  <td className="px-6 py-5 text-muted-foreground">{f.administradora}</td>
-                  <td className={cn("px-6 py-5 font-display font-semibold", f.rent1 >= 0 ? "text-accent" : "text-destructive")}>
+                  <td className="px-6 pt-5 pb-2 font-semibold text-primary">{f.nombre}</td>
+                  <td className="px-6 pt-5 pb-2 text-muted-foreground">{f.administradora}</td>
+                  <td className={cn("px-6 pt-5 pb-2 font-display font-semibold", f.rent1 >= 0 ? "text-accent" : "text-destructive")}>
                     +{f.rent1.toFixed(1)}%
                   </td>
-                  <td className={cn("px-6 py-5 font-display font-semibold", f.rent3 >= 0 ? "text-accent" : "text-destructive")}>
+                  <td className={cn("px-6 pt-5 pb-2 font-display font-semibold", f.rent3 >= 0 ? "text-accent" : "text-destructive")}>
                     +{f.rent3.toFixed(1)}%
                   </td>
-                  <td className="px-6 py-5">
+                  <td className="px-6 pt-5 pb-2">
                     <span className={cn("inline-flex px-3 py-1 rounded-full text-xs font-semibold", riesgoColor[f.riesgo])}>
                       {f.riesgo}
                     </span>
                   </td>
-                  <td className="px-6 py-5 text-muted-foreground">{f.comision.toFixed(2)}%</td>
-                  <td className="px-6 py-5 text-right">
+                  <td className="px-6 pt-5 pb-2 text-muted-foreground">{f.comision.toFixed(2)}%</td>
+                  <td className="px-6 pt-5 pb-2 text-right">
                     {(() => {
                       const cta = getFundCta(f);
                       return (
@@ -173,6 +175,12 @@ const Comparador = () => {
                     })()}
                   </td>
                 </tr>
+                <tr key={`${f.id}-meta`} className="border-b border-border/60">
+                  <td colSpan={7} className="px-6 pb-4 pt-0">
+                    <CredibilityBadge />
+                  </td>
+                </tr>
+                </>
               ))}
             </tbody>
           </table>
