@@ -1,5 +1,3 @@
-import { supabase } from "@/integrations/supabase/client";
-
 export type Range = "1mo" | "3mo" | "1y";
 
 export interface YahooMeta {
@@ -15,7 +13,7 @@ export interface YahooMeta {
 }
 
 export interface ChartPoint {
-  t: number; // unix seconds
+  t: number;
   price: number;
 }
 
@@ -27,7 +25,7 @@ export interface ChartResponse {
 interface YahooRaw {
   chart: {
     result?: Array<{
-      meta: YahooMeta & { regularMarketPrice: number };
+      meta: YahooMeta;
       timestamp?: number[];
       indicators: {
         quote: Array<{ close?: (number | null)[] }>;
@@ -43,29 +41,7 @@ export async function fetchYahooChart(
   range: Range,
   signal?: AbortSignal,
 ): Promise<ChartResponse> {
-  const interval = range === "1mo" ? "1d" : range === "3mo" ? "1d" : "1d";
-  const { data, error } = await supabase.functions.invoke<YahooRaw>("yahoo-finance", {
-    method: "GET",
-    body: undefined,
-    // supabase-js builds the URL; pass query via headers workaround:
-    headers: {},
-    // The invoke helper does not support query params directly across versions; use raw fetch instead.
-  });
-
-  // Fallback: supabase.functions.invoke does not always pass query params reliably.
-  // Use a direct fetch to the function URL instead.
-  if (error || !data) {
-    return await fetchYahooChartDirect(symbol, range, interval, signal);
-  }
-  return parseYahoo(data);
-}
-
-async function fetchYahooChartDirect(
-  symbol: string,
-  range: Range,
-  interval: string,
-  signal?: AbortSignal,
-): Promise<ChartResponse> {
+  const interval = "1d";
   const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
   const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
   const url = `${SUPABASE_URL}/functions/v1/yahoo-finance?symbol=${encodeURIComponent(
@@ -80,7 +56,13 @@ async function fetchYahooChartDirect(
     },
   });
   if (!res.ok) {
-    throw new Error(`Yahoo proxy failed (${res.status})`);
+    let detail = "";
+    try {
+      detail = (await res.text()).slice(0, 200);
+    } catch {
+      // ignore
+    }
+    throw new Error(`No pudimos obtener datos (${res.status}). ${detail}`);
   }
   const json = (await res.json()) as YahooRaw;
   return parseYahoo(json);
@@ -91,7 +73,8 @@ function parseYahoo(json: YahooRaw): ChartResponse {
   if (!r) throw new Error("Sin datos para este símbolo");
 
   const ts = r.timestamp ?? [];
-  const closes = r.indicators?.adjclose?.[0]?.adjclose ?? r.indicators?.quote?.[0]?.close ?? [];
+  const closes =
+    r.indicators?.adjclose?.[0]?.adjclose ?? r.indicators?.quote?.[0]?.close ?? [];
 
   const points: ChartPoint[] = [];
   for (let i = 0; i < ts.length; i++) {
