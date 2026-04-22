@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Search, TrendingUp, TrendingDown, Info, ExternalLink, ShieldAlert, X } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
-import { fetchYahooChart, type ChartResponse, type Range } from "@/lib/yahooApi";
+import { fetchYahooChart, fetchFinnhubData, type ChartResponse, type FinnhubData, type Range } from "@/lib/yahooApi";
 import { FINTUAL_AFFILIATE } from "@/lib/affiliate";
 import { trackEvent } from "@/lib/analytics";
 import {
