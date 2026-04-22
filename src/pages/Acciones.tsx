@@ -687,7 +687,7 @@ const StockDetail = ({
         </div>
         <div className={`p-6 rounded-2xl border-2 ${marketTone.bg}`}>
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-            Mejor momento del día
+            Estado del mercado
           </p>
           <div className="flex items-start gap-2">
             <span className="text-xl leading-none">{market.emoji}</span>
