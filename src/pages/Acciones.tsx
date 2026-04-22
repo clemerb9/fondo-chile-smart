@@ -329,6 +329,7 @@ const Acciones = () => {
 const StockDetail = ({
   stock,
   data,
+  finnhub,
   loading,
   err,
   range,
@@ -337,6 +338,7 @@ const StockDetail = ({
 }: {
   stock: StockMeta;
   data: ChartResponse | null;
+  finnhub: FinnhubData | null;
   loading: boolean;
   err: string | null;
   range: Range;
