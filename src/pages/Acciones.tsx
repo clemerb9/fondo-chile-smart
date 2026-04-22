@@ -509,9 +509,21 @@ const StockDetail = ({
       <div className="p-6 rounded-2xl bg-card border border-border shadow-soft">
         <h3 className="font-display text-lg font-semibold text-primary mb-2">¿Qué es esta empresa?</h3>
         <p className="text-muted-foreground leading-relaxed mb-3">{stock.description}</p>
-        <span className="inline-block px-3 py-1 rounded-full bg-accent-soft text-accent text-xs font-semibold">
-          Sector: {stock.sector}
-        </span>
+        <div className="flex flex-wrap gap-2">
+          <span className="inline-block px-3 py-1 rounded-full bg-accent-soft text-accent text-xs font-semibold">
+            Sector: {stock.sector}
+          </span>
+          {finnhub?.profile?.finnhubIndustry && (
+            <span className="inline-block px-3 py-1 rounded-full bg-muted text-muted-foreground text-xs font-semibold">
+              Industria: {finnhub.profile.finnhubIndustry}
+            </span>
+          )}
+          {finnhub?.profile?.name && finnhub.profile.name !== stock.label && (
+            <span className="inline-block px-3 py-1 rounded-full bg-muted text-muted-foreground text-xs font-semibold">
+              {finnhub.profile.name}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* METRICS */}
