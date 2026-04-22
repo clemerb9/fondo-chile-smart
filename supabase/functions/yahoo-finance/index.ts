@@ -30,6 +30,7 @@ interface RealAsset {
   attributes?: {
     last_day?: {
       price?: number | null;
+      net_asset_value?: number | null;
       date?: string | null;
     } | null;
   };
@@ -128,15 +129,20 @@ async function fetchLatestFintualPrice(conceptualId: number | string): Promise<{
     let latest: { price: number; date: string } | null = null;
     for (const asset of res.data ?? []) {
       const lastDay = asset.attributes?.last_day;
+      const value =
+        typeof lastDay?.net_asset_value === "number" && Number.isFinite(lastDay.net_asset_value)
+          ? lastDay.net_asset_value
+          : typeof lastDay?.price === "number" && Number.isFinite(lastDay.price)
+            ? lastDay.price
+            : null;
       if (
         lastDay &&
-        typeof lastDay.price === "number" &&
-        Number.isFinite(lastDay.price) &&
+        value !== null &&
         typeof lastDay.date === "string" &&
         lastDay.date
       ) {
         if (!latest || lastDay.date > latest.date) {
-          latest = { price: lastDay.price, date: lastDay.date };
+          latest = { price: value, date: lastDay.date };
         }
       }
     }
