@@ -36,77 +36,61 @@ const Home = () => {
           <div className="absolute bottom-10 right-10 w-96 h-96 rounded-full bg-primary-glow blur-3xl" />
         </div>
 
-        <div className="container relative py-20 md:py-32">
-          <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent-foreground/10 border border-accent-foreground/20 backdrop-blur-sm text-sm mb-6 animate-fade-in">
-              <Sparkles className="h-4 w-4 text-accent" />
-              <span className="text-primary-foreground/90">Hecho para inversionistas en Chile</span>
-            </div>
-
-            <h1 className="font-display text-5xl md:text-7xl font-bold leading-[1.05] mb-6 text-balance animate-fade-up">
-              Invierte con <span className="text-accent">claridad</span>, no con suerte.
+        <div className="container relative py-20 md:py-28">
+          <div className="max-w-3xl mx-auto text-center">
+            <h1 className="font-display text-5xl md:text-7xl font-bold leading-[1.05] mb-5 text-balance animate-fade-up">
+              Invierte con <span className="text-accent">claridad</span>, no con suerte
             </h1>
-
-            <p className="text-lg md:text-xl text-primary-foreground/80 mb-10 max-w-2xl text-balance animate-fade-up" style={{ animationDelay: "100ms" }}>
-              Compara fondos mutuos chilenos y simula cuánto puede crecer tu dinero. Sin tecnicismos, sin letra chica.
+            <p className="text-lg md:text-2xl text-primary-foreground/80 mb-12 text-balance animate-fade-up" style={{ animationDelay: "100ms" }}>
+              ¿Por dónde quieres empezar?
             </p>
+          </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 animate-fade-up" style={{ animationDelay: "200ms" }}>
-              <Link
-                to="/comparador"
-                className="inline-flex items-center justify-center gap-2 px-7 py-4 rounded-xl gradient-accent text-accent-foreground font-semibold transition-smooth hover:shadow-glow hover:scale-[1.02]"
-              >
-                Comparar fondos ahora
-                <ArrowRight className="h-5 w-5" />
-              </Link>
-              <Link
-                to="/simulador"
-                className="inline-flex items-center justify-center gap-2 px-7 py-4 rounded-xl bg-primary-foreground/10 backdrop-blur-sm border border-primary-foreground/20 text-primary-foreground font-semibold transition-smooth hover:bg-primary-foreground/20"
-              >
-                Probar simulador
-              </Link>
-            </div>
+          {/* Two path cards */}
+          <div className="grid md:grid-cols-2 gap-5 md:gap-6 max-w-5xl mx-auto animate-fade-up" style={{ animationDelay: "200ms" }}>
+            {/* CARD 1 — Empezar desde cero (green/accent) */}
+            <Link
+              to="/descubre"
+              className="group relative overflow-hidden rounded-3xl bg-card p-8 md:p-10 shadow-elegant border-2 border-accent/30 hover:border-accent transition-smooth hover:-translate-y-1"
+            >
+              <div className="absolute -top-12 -right-12 w-44 h-44 rounded-full bg-accent/15 blur-2xl transition-smooth group-hover:bg-accent/25" />
+              <div className="relative">
+                <div className="text-5xl mb-5">👶</div>
+                <h2 className="font-display text-2xl md:text-3xl font-bold text-primary mb-3 text-balance">
+                  Estoy empezando desde cero
+                </h2>
+                <p className="text-muted-foreground leading-relaxed mb-7 md:min-h-[3.5rem]">
+                  Descubre en 2 minutos en qué invertir según tus metas y perfil.
+                </p>
+                <span className="inline-flex items-center gap-2 px-6 py-3 rounded-xl gradient-accent text-accent-foreground font-semibold shadow-soft transition-smooth group-hover:shadow-glow">
+                  Empezar
+                  <ArrowRight className="h-5 w-5 transition-smooth group-hover:translate-x-1" />
+                </span>
+              </div>
+            </Link>
 
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-4 md:gap-8 mt-16 max-w-xl animate-fade-up" style={{ animationDelay: "300ms" }}>
-              {stats.map((s) => (
-                <div key={s.label}>
-                  <div className="font-display text-2xl md:text-4xl font-bold text-accent">{s.value}</div>
-                  <div className="text-xs md:text-sm text-primary-foreground/70 mt-1">{s.label}</div>
-                </div>
-              ))}
-            </div>
+            {/* CARD 2 — Analizar inversión (blue/primary) */}
+            <Link
+              to="/acciones"
+              className="group relative overflow-hidden rounded-3xl bg-card p-8 md:p-10 shadow-elegant border-2 border-primary/30 hover:border-primary transition-smooth hover:-translate-y-1"
+            >
+              <div className="absolute -top-12 -right-12 w-44 h-44 rounded-full bg-primary/15 blur-2xl transition-smooth group-hover:bg-primary/25" />
+              <div className="relative">
+                <div className="text-5xl mb-5">🔍</div>
+                <h2 className="font-display text-2xl md:text-3xl font-bold text-primary mb-3 text-balance">
+                  Quiero analizar una inversión
+                </h2>
+                <p className="text-muted-foreground leading-relaxed mb-7 md:min-h-[3.5rem]">
+                  Busca cualquier acción o fondo y ve si es buen momento para invertir.
+                </p>
+                <span className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground font-semibold shadow-soft transition-smooth group-hover:bg-primary-glow">
+                  Buscar
+                  <ArrowRight className="h-5 w-5 transition-smooth group-hover:translate-x-1" />
+                </span>
+              </div>
+            </Link>
           </div>
         </div>
-      </section>
-
-      {/* DESCUBRE CTA */}
-      <section className="container pt-16 md:pt-20">
-        <Link
-          to="/descubre"
-          className="group relative block overflow-hidden rounded-3xl gradient-accent p-8 md:p-10 shadow-glow transition-smooth hover:scale-[1.01]"
-        >
-          <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-primary-foreground/10 blur-2xl" />
-          <div className="relative flex flex-col md:flex-row md:items-center gap-6 justify-between">
-            <div className="flex items-start md:items-center gap-5">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-accent-foreground/15 backdrop-blur-sm">
-                <Compass className="h-7 w-7 text-accent-foreground" strokeWidth={2.2} />
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-accent-foreground/80 uppercase tracking-wider mb-1">
-                  Inversión a tu medida
-                </p>
-                <h2 className="font-display text-2xl md:text-3xl font-bold text-accent-foreground text-balance">
-                  ¿No sabes por dónde empezar? Descúbrelo en 2 minutos
-                </h2>
-              </div>
-            </div>
-            <div className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground font-semibold shadow-elegant whitespace-nowrap group-hover:bg-primary-glow transition-smooth self-start md:self-auto">
-              Empezar test
-              <ArrowRight className="h-5 w-5 transition-smooth group-hover:translate-x-1" />
-            </div>
-          </div>
-        </Link>
       </section>
 
       {/* BUDGET RULE 50-30-20 */}
