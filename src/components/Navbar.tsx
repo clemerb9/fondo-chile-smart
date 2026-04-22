@@ -7,6 +7,7 @@ const links = [
   { to: "/", label: "Inicio" },
   { to: "/descubre", label: "Descúbrelo" },
   { to: "/comparador", label: "Comparador" },
+  { to: "/acciones", label: "Analiza una acción" },
   { to: "/simulador", label: "Simulador" },
   { to: "/glosario", label: "Glosario" },
 ];
