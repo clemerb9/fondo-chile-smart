@@ -604,6 +604,10 @@ const StockDetail = ({
 
   const signal = computeSignal(data);
   const risk = computeRisk(points);
+  const market = computeMarketStatus(stock.symbol);
+  const technical = computeTechnical(data);
+  const summary = buildExecutiveSummary(stock, data, finnhub);
+  const verdict = computeVerdict(data, technical, market, finnhub?.pe ?? null);
 
   // P/E from Finnhub when available; fallback to "Sin datos".
   const peValue: string =
@@ -612,28 +616,35 @@ const StockDetail = ({
   const high52 = meta.fiftyTwoWeekHigh;
   const low52 = meta.fiftyTwoWeekLow;
 
-  const signalStyles: Record<Signal, { bg: string; text: string; dot: string; emoji: string }> = {
+  const toneStyles: Record<"green" | "yellow" | "red", { bg: string; text: string; emoji: string }> = {
     green: {
       bg: "bg-accent-soft border-accent/40",
       text: "text-accent",
-      dot: "bg-accent",
       emoji: "🟢",
     },
     yellow: {
       bg: "bg-warning/10 border-warning/40",
       text: "text-[hsl(var(--warning))]",
-      dot: "bg-[hsl(var(--warning))]",
       emoji: "🟡",
     },
     red: {
       bg: "bg-destructive/10 border-destructive/40",
       text: "text-destructive",
-      dot: "bg-destructive",
       emoji: "🔴",
     },
   };
 
-  const sig = signalStyles[signal.color];
+  const sig = toneStyles[signal.color];
+  const marketTone = toneStyles[market.tone];
+  const verdictTone = toneStyles[verdict.tone];
+  const high52Tone =
+    technical.high52.tone === "neutral"
+      ? "text-muted-foreground"
+      : technical.high52.tone === "green"
+        ? "text-accent"
+        : technical.high52.tone === "yellow"
+          ? "text-[hsl(var(--warning))]"
+          : "text-destructive";
 
   return (
     <div className="space-y-8">
@@ -661,6 +672,28 @@ const StockDetail = ({
               {positive ? "+" : ""}
               {change.toFixed(2)} ({positive ? "+" : ""}
               {changePct.toFixed(2)}%) hoy
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* RESUMEN EJECUTIVO + ESTADO DEL MERCADO */}
+      <div className="grid md:grid-cols-[1.4fr_1fr] gap-4">
+        <div className="p-6 rounded-2xl bg-card border border-border shadow-soft">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+            Resumen ejecutivo
+          </p>
+          <p className="text-primary leading-relaxed">{summary}</p>
+        </div>
+        <div className={`p-6 rounded-2xl border-2 ${marketTone.bg}`}>
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+            Mejor momento del día
+          </p>
+          <div className="flex items-start gap-2">
+            <span className="text-xl leading-none">{market.emoji}</span>
+            <div>
+              <p className={`font-display font-semibold ${marketTone.text}`}>{market.title}</p>
+              <p className="text-xs text-muted-foreground mt-1">{market.detail}</p>
             </div>
           </div>
         </div>
@@ -731,6 +764,46 @@ const StockDetail = ({
               />
             </AreaChart>
           </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* ANÁLISIS TÉCNICO SIMPLE */}
+      <div className="p-6 rounded-2xl bg-card border border-border shadow-soft">
+        <h3 className="font-display text-lg font-semibold text-primary mb-4">Análisis técnico simple</h3>
+        <div className="grid sm:grid-cols-3 gap-4">
+          <div className="p-4 rounded-xl bg-muted/40 border border-border">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+              Tendencia 30 días
+            </p>
+            <p className="font-display text-base font-semibold text-primary">
+              <span className="mr-1.5">{technical.trend.emoji}</span>
+              {technical.trend.label}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {technical.change30 >= 0 ? "+" : ""}
+              {technical.change30.toFixed(1)}% vs hace 30 días
+            </p>
+          </div>
+          <div className="p-4 rounded-xl bg-muted/40 border border-border">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+              Distancia al máximo 52s
+            </p>
+            <p className={`font-display text-base font-semibold ${high52Tone}`}>
+              {technical.high52.text}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Verde &gt;20% · Amarillo 10–20% · Rojo &lt;10%
+            </p>
+          </div>
+          <div className="p-4 rounded-xl bg-muted/40 border border-border">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+              Momentum reciente
+            </p>
+            <p className="font-display text-base font-semibold text-primary">{technical.momentum.text}</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Basado en cierres consecutivos del periodo
+            </p>
+          </div>
         </div>
       </div>
 
@@ -811,22 +884,29 @@ const StockDetail = ({
         </p>
       </div>
 
-      {/* SIGNAL */}
-      <div className={`p-6 rounded-2xl border-2 ${sig.bg}`}>
-        <div className="flex items-center gap-3 mb-3">
-          <span className="text-2xl">{sig.emoji}</span>
-          <h3 className={`font-display text-xl font-bold ${sig.text}`}>{signal.label}</h3>
-        </div>
-        {signal.reasons.length > 0 && (
-          <ul className="text-sm text-primary/80 space-y-1 ml-9 list-disc">
-            {signal.reasons.map((r) => (
-              <li key={r}>{r}</li>
-            ))}
-          </ul>
-        )}
-        <p className="text-xs text-muted-foreground mt-4 ml-9">
-          ⚠️ Esto es orientativo, no asesoría financiera.
+      {/* VEREDICTO FINAL */}
+      <div className={`p-7 rounded-2xl border-2 ${verdictTone.bg}`}>
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+          Veredicto final
         </p>
+        <div className="flex items-center gap-3 mb-4">
+          <span className="text-3xl leading-none">{verdict.emoji}</span>
+          <h3 className={`font-display text-2xl md:text-3xl font-bold ${verdictTone.text}`}>
+            {verdict.title}
+          </h3>
+        </div>
+        <ul className="text-sm text-primary/85 space-y-1.5 ml-1 list-disc list-inside">
+          {verdict.reasons.map((r) => (
+            <li key={r}>{r}</li>
+          ))}
+        </ul>
+        <p className="text-xs text-muted-foreground mt-5">
+          ⚠️ Análisis orientativo basado en datos históricos. No es asesoría financiera.
+        </p>
+        {/* Mantenemos el semáforo previo como contexto adicional, sin ruido visual */}
+        {signal.reasons.length > 0 && (
+          <p className="sr-only">{sig.emoji} {signal.label}</p>
+        )}
       </div>
 
       {/* CTA */}
