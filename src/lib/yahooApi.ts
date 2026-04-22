@@ -84,6 +84,19 @@ export interface FinnhubData {
   profile: FinnhubProfile | null;
 }
 
+export interface FintualFundQuote {
+  id: string;
+  nombre: string;
+  administradora: string;
+  precio: number;
+  fecha: string;
+  moneda: "CLP";
+  riesgo: "Conservador" | "Moderado" | "Agresivo";
+  rent1: number;
+  rent3: number;
+  comision: number;
+}
+
 export async function fetchFinnhubData(
   symbol: string,
   signal?: AbortSignal,
@@ -107,6 +120,33 @@ export async function fetchFinnhubData(
     pe: typeof json.pe === "number" && Number.isFinite(json.pe) ? json.pe : null,
     profile: json.profile ?? null,
   };
+}
+
+export async function fetchFintualFunds(signal?: AbortSignal): Promise<FintualFundQuote[]> {
+  const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+  const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+  const url = `${SUPABASE_URL}/functions/v1/yahoo-finance?source=fintual`;
+
+  const res = await fetch(url, {
+    signal,
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`,
+    },
+  });
+
+  if (!res.ok) {
+    let detail = "";
+    try {
+      detail = (await res.text()).slice(0, 200);
+    } catch {
+      // ignore
+    }
+    throw new Error(`No pudimos obtener fondos (${res.status}). ${detail}`);
+  }
+
+  const json = (await res.json()) as { funds?: FintualFundQuote[] };
+  return Array.isArray(json.funds) ? json.funds : [];
 }
 
 function parseYahoo(json: YahooRaw): ChartResponse {
