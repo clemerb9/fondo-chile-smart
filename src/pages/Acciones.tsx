@@ -267,6 +267,7 @@ const Acciones = () => {
           <StockDetail
             stock={selected}
             data={data}
+            finnhub={finnhub}
             loading={loading}
             err={err}
             range={range}
