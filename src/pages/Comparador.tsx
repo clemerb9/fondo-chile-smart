@@ -216,6 +216,13 @@ const Comparador = () => {
         </div>
       </div>
 
+      {/* Contador fondos vigentes */}
+      {!loading && !usingFallback && (
+        <p className="mb-4 text-sm font-medium text-primary">
+          Mostrando {data.length} fondo{data.length === 1 ? "" : "s"} mutuo{data.length === 1 ? "" : "s"} vigente{data.length === 1 ? "" : "s"} en Chile
+        </p>
+      )}
+
       {/* Loading skeletons */}
       {loading && (
         <>
@@ -277,8 +284,11 @@ const Comparador = () => {
                         <td className="px-6 pt-5 pb-2 font-display font-semibold text-primary">
                           {formatCLP(f.precio)}
                           {f.fecha && (
-                            <div className="text-[11px] text-muted-foreground font-sans font-normal mt-0.5">
-                              Última actualización: {formatFecha(f.fecha)}
+                            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground font-sans font-normal mt-1">
+                              <span className="inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_0_3px_rgba(16,185,129,0.18)]" aria-hidden />
+                              <span className="font-medium text-emerald-700">Vigente</span>
+                              <span aria-hidden>·</span>
+                              <span>Actualizado {formatFecha(f.fecha)}</span>
                             </div>
                           )}
                         </td>
@@ -339,7 +349,12 @@ const Comparador = () => {
                   <div className="text-xs text-muted-foreground">Valor cuota</div>
                   <div className="font-display font-semibold text-primary text-lg">{formatCLP(f.precio)}</div>
                   {f.fecha && (
-                    <div className="text-[11px] text-muted-foreground mt-0.5">Última actualización: {formatFecha(f.fecha)}</div>
+                    <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mt-1">
+                      <span className="inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_0_3px_rgba(16,185,129,0.18)]" aria-hidden />
+                      <span className="font-medium text-emerald-700">Vigente</span>
+                      <span aria-hidden>·</span>
+                      <span>Actualizado {formatFecha(f.fecha)}</span>
+                    </div>
                   )}
                 </div>
                 <a
