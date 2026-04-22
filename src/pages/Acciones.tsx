@@ -350,7 +350,7 @@ function buildExecutiveSummary(
   const sector = finnhub?.profile?.finnhubIndustry || stock.sector || "su industria";
   const what = stock.description.split(".")[0] || "opera en su mercado";
 
-  return `${stock.label} es una empresa de ${sector} que ${what.toLowerCase()}. En los últimos 3 meses su acción ha ${direction}${pctText}. Actualmente está ${valuation}.`;
+  return `${stock.label} es una empresa de ${sector} dedicada a ${what.toLowerCase()}. En los últimos 3 meses su acción ha ${direction}${pctText}. Actualmente está ${valuation}.`;
 }
 
 const Acciones = () => {
