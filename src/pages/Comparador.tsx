@@ -11,6 +11,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 const formatFecha = (iso: string) =>
   new Date(iso).toLocaleDateString("es-CL", { day: "2-digit", month: "long", year: "numeric" });
 
+const ACTIVE_WINDOW_DAYS = 30;
+const isRecent = (iso: string | null): boolean => {
+  if (!iso) return false;
+  const ts = Date.parse(iso);
+  if (!Number.isFinite(ts)) return false;
+  return Date.now() - ts <= ACTIVE_WINDOW_DAYS * 24 * 60 * 60 * 1000;
+};
+
 const formatCLP = (n: number | null): string => {
   if (n == null) return "Sin datos";
   // Always show 2 decimals with Chilean format: $1.371,93
@@ -82,7 +90,11 @@ const Comparador = () => {
     setLoading(true);
     fetchFintualFunds(controller.signal)
       .then((funds) => {
-        setRows(funds.filter((fund) => Number.isFinite(fund.precio)).map(fromFintual));
+        const active = funds
+          .filter((fund) => Number.isFinite(fund.precio) && isRecent(fund.fecha))
+          .map(fromFintual)
+          .sort((a, b) => (a.fecha && b.fecha ? (a.fecha < b.fecha ? 1 : -1) : 0));
+        setRows(active);
         setUsingFallback(false);
       })
       .catch((err) => {
@@ -106,6 +118,8 @@ const Comparador = () => {
         const diff = (av as number) - (bv as number);
         return sortDir === "asc" ? diff : -diff;
       });
+    } else {
+      r = [...r].sort((a, b) => (a.fecha && b.fecha ? (a.fecha < b.fecha ? 1 : -1) : 0));
     }
     return r;
   }, [rows, riesgo, sortKey, sortDir]);
@@ -202,6 +216,13 @@ const Comparador = () => {
         </div>
       </div>
 
+      {/* Contador fondos vigentes */}
+      {!loading && !usingFallback && (
+        <p className="mb-4 text-sm font-medium text-primary">
+          Mostrando {data.length} fondo{data.length === 1 ? "" : "s"} mutuo{data.length === 1 ? "" : "s"} vigente{data.length === 1 ? "" : "s"} en Chile
+        </p>
+      )}
+
       {/* Loading skeletons */}
       {loading && (
         <>
@@ -263,8 +284,11 @@ const Comparador = () => {
                         <td className="px-6 pt-5 pb-2 font-display font-semibold text-primary">
                           {formatCLP(f.precio)}
                           {f.fecha && (
-                            <div className="text-[11px] text-muted-foreground font-sans font-normal mt-0.5">
-                              Última actualización: {formatFecha(f.fecha)}
+                            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground font-sans font-normal mt-1">
+                              <span className="inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_0_3px_rgba(16,185,129,0.18)]" aria-hidden />
+                              <span className="font-medium text-emerald-700">Vigente</span>
+                              <span aria-hidden>·</span>
+                              <span>Actualizado {formatFecha(f.fecha)}</span>
                             </div>
                           )}
                         </td>
@@ -325,7 +349,12 @@ const Comparador = () => {
                   <div className="text-xs text-muted-foreground">Valor cuota</div>
                   <div className="font-display font-semibold text-primary text-lg">{formatCLP(f.precio)}</div>
                   {f.fecha && (
-                    <div className="text-[11px] text-muted-foreground mt-0.5">Última actualización: {formatFecha(f.fecha)}</div>
+                    <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mt-1">
+                      <span className="inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_0_3px_rgba(16,185,129,0.18)]" aria-hidden />
+                      <span className="font-medium text-emerald-700">Vigente</span>
+                      <span aria-hidden>·</span>
+                      <span>Actualizado {formatFecha(f.fecha)}</span>
+                    </div>
                   )}
                 </div>
                 <a
