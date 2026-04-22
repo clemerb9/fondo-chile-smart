@@ -9,6 +9,7 @@ import Comparador from "./pages/Comparador";
 import Simulador from "./pages/Simulador";
 import Glosario from "./pages/Glosario";
 import Descubre from "./pages/Descubre";
+import Acciones from "./pages/Acciones";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -25,6 +26,7 @@ const App = () => (
             <Route path="/comparador" element={<Comparador />} />
             <Route path="/simulador" element={<Simulador />} />
             <Route path="/descubre" element={<Descubre />} />
+            <Route path="/acciones" element={<Acciones />} />
             <Route path="/glosario" element={<Glosario />} />
           </Route>
           <Route path="*" element={<NotFound />} />
