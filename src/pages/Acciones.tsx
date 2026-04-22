@@ -124,6 +124,235 @@ function marketCapBand(symbol: string): string {
   return "Empresa mediana";
 }
 
+// ============== Helpers para análisis ampliado ==============
+
+type MarketStatus = {
+  state: "open" | "closed" | "premarket";
+  emoji: string;
+  title: string;
+  detail: string;
+  tone: "green" | "yellow" | "red";
+};
+
+function getChileTime(now = new Date()): { hour: number; minute: number; weekday: number; date: Date } {
+  // Convert "now" to Chile (CLT, UTC-3) using a simple offset string.
+  const chile = new Date(now.toLocaleString("en-US", { timeZone: "America/Santiago" }));
+  return {
+    hour: chile.getHours(),
+    minute: chile.getMinutes(),
+    weekday: chile.getDay(), // 0 Sun .. 6 Sat
+    date: chile,
+  };
+}
+
+function computeMarketStatus(symbol: string): MarketStatus {
+  const isChile = symbol.toUpperCase().endsWith(".SN");
+  const { hour, minute, weekday } = getChileTime();
+  const minutesNow = hour * 60 + minute;
+  const isWeekend = weekday === 0 || weekday === 6;
+
+  // Hours expressed in Chile local time.
+  // Chilean exchange (Bolsa de Santiago): 09:30 – 17:30
+  // US markets in Chile time: pre 07:00–10:30, regular 10:30–17:00
+  const open = isChile ? 9 * 60 + 30 : 10 * 60 + 30;
+  const close = isChile ? 17 * 60 + 30 : 17 * 60;
+  const preStart = isChile ? 8 * 60 + 30 : 7 * 60;
+  const preEnd = open;
+
+  if (isWeekend) {
+    return {
+      state: "closed",
+      emoji: "🔴",
+      title: "Mercado cerrado · Fin de semana",
+      detail: "El precio que ves es el último cierre oficial. Vuelve el lunes.",
+      tone: "red",
+    };
+  }
+
+  if (minutesNow >= open && minutesNow < close) {
+    return {
+      state: "open",
+      emoji: "🟢",
+      title: "Mercado abierto · Puedes operar ahora",
+      detail: "Los precios se actualizan durante el día con un pequeño retraso.",
+      tone: "green",
+    };
+  }
+
+  if (!isChile && minutesNow >= preStart && minutesNow < preEnd) {
+    return {
+      state: "premarket",
+      emoji: "🟡",
+      title: "Pre-mercado · Precios referenciales",
+      detail: "El mercado regular abre pronto. Las cotizaciones pueden moverse rápido.",
+      tone: "yellow",
+    };
+  }
+
+  // Closed: estimate hours until next open (today or next weekday).
+  let minutesUntilOpen: number;
+  if (minutesNow < open) {
+    minutesUntilOpen = open - minutesNow;
+  } else {
+    const daysUntilWeekday = weekday === 5 ? 3 : 1; // Friday → Monday
+    minutesUntilOpen = (24 * 60 - minutesNow) + open + (daysUntilWeekday - 1) * 24 * 60;
+  }
+  const hoursUntil = Math.max(1, Math.round(minutesUntilOpen / 60));
+  return {
+    state: "closed",
+    emoji: "🔴",
+    title: `Mercado cerrado · Abre en ${hoursUntil} ${hoursUntil === 1 ? "hora" : "horas"}`,
+    detail: "El precio que ves es el último cierre oficial.",
+    tone: "red",
+  };
+}
+
+type TrendDirection = "up" | "down" | "flat";
+type TechnicalAnalysis = {
+  trend: { dir: TrendDirection; emoji: string; label: string; pct: number };
+  high52: {
+    distancePct: number | null;
+    text: string;
+    tone: "green" | "yellow" | "red" | "neutral";
+  };
+  momentum: { days: number; dir: TrendDirection; text: string };
+  change30: number;
+};
+
+function computeTechnical(data: ChartResponse): TechnicalAnalysis {
+  const { points, meta } = data;
+  const price = meta.regularMarketPrice;
+  const lastIdx = points.length - 1;
+  const idx30 = Math.max(0, lastIdx - 22);
+  const price30Ago = points[idx30]?.price ?? price;
+  const change30 = ((price - price30Ago) / price30Ago) * 100;
+
+  let dir: TrendDirection = "flat";
+  let emoji = "➡️";
+  let label = "Lateral";
+  if (change30 >= 2) {
+    dir = "up";
+    emoji = "📈";
+    label = "Alcista";
+  } else if (change30 <= -2) {
+    dir = "down";
+    emoji = "📉";
+    label = "Bajista";
+  }
+
+  const high52 = meta.fiftyTwoWeekHigh ?? Math.max(...points.map((p) => p.price), price);
+  const distancePct = high52 > 0 ? ((high52 - price) / high52) * 100 : null;
+  let high52Tone: "green" | "yellow" | "red" | "neutral" = "neutral";
+  let high52Text = "Sin datos del máximo anual";
+  if (distancePct != null && Number.isFinite(distancePct)) {
+    high52Tone = distancePct > 20 ? "green" : distancePct >= 10 ? "yellow" : "red";
+    high52Text = `Está un ${distancePct.toFixed(1)}% bajo su máximo anual`;
+  }
+
+  // Momentum: count consecutive up/down days at the end of the series.
+  let days = 0;
+  let momentumDir: TrendDirection = "flat";
+  for (let i = points.length - 1; i > 0; i--) {
+    const diff = points[i].price - points[i - 1].price;
+    if (diff > 0) {
+      if (momentumDir === "down") break;
+      momentumDir = "up";
+      days++;
+    } else if (diff < 0) {
+      if (momentumDir === "up") break;
+      momentumDir = "down";
+      days++;
+    } else {
+      break;
+    }
+    if (days >= 15) break;
+  }
+  const momentumText =
+    days <= 1
+      ? "Sin racha clara en los últimos días"
+      : `Lleva ${days} días consecutivos ${momentumDir === "up" ? "subiendo" : "bajando"}`;
+
+  return {
+    trend: { dir, emoji, label, pct: change30 },
+    high52: { distancePct, text: high52Text, tone: high52Tone },
+    momentum: { days, dir: momentumDir, text: momentumText },
+    change30,
+  };
+}
+
+type Verdict = {
+  tone: "green" | "yellow" | "red";
+  emoji: string;
+  title: string;
+  reasons: string[];
+};
+
+function computeVerdict(
+  data: ChartResponse,
+  tech: TechnicalAnalysis,
+  market: MarketStatus,
+  pe: number | null,
+): Verdict {
+  const { meta, points } = data;
+  const price = meta.regularMarketPrice;
+  const avg = points.length ? points.reduce((s, p) => s + p.price, 0) / points.length : price;
+  const belowAvg = price < avg;
+  const nearHigh = tech.high52.tone === "red";
+  const reasons: string[] = [];
+
+  // Strong red signals.
+  const peHigh = pe != null && pe > 35;
+  if (nearHigh && tech.trend.dir === "down" && (peHigh || tech.change30 < -8)) {
+    reasons.push("Precio cerca del máximo anual");
+    reasons.push(`Tendencia 30 días bajista (${tech.change30.toFixed(1)}%)`);
+    if (peHigh) reasons.push(`P/E elevado (${pe!.toFixed(1)})`);
+    return { tone: "red", emoji: "🔴", title: "Precaución", reasons };
+  }
+
+  // Strong green signals.
+  const peOk = pe == null || pe < 30;
+  if (belowAvg && market.state === "open" && tech.trend.dir === "up" && peOk) {
+    reasons.push("Precio bajo el promedio reciente");
+    reasons.push(`Tendencia 30 días alcista (+${tech.change30.toFixed(1)}%)`);
+    reasons.push(pe != null ? `P/E razonable (${pe.toFixed(1)})` : "Mercado abierto, fácil de operar");
+    return { tone: "green", emoji: "🟢", title: "Momento favorable", reasons };
+  }
+
+  // Neutral fallback.
+  if (belowAvg) reasons.push("Precio bajo el promedio reciente");
+  if (!belowAvg) reasons.push("Precio sobre el promedio reciente");
+  reasons.push(`Tendencia 30 días: ${tech.trend.label.toLowerCase()} (${tech.change30.toFixed(1)}%)`);
+  if (pe != null) reasons.push(`P/E actual: ${pe.toFixed(1)}`);
+  else reasons.push("Sin P/E disponible");
+  return { tone: "yellow", emoji: "🟡", title: "Momento neutro", reasons };
+}
+
+function buildExecutiveSummary(
+  stock: StockMeta,
+  data: ChartResponse,
+  finnhub: FinnhubData | null,
+): string {
+  const { meta, points } = data;
+  const price = meta.regularMarketPrice;
+  const lastIdx = points.length - 1;
+  const idx90 = Math.max(0, lastIdx - 65);
+  const price90Ago = points[idx90]?.price ?? price;
+  const change90 = ((price - price90Ago) / price90Ago) * 100;
+  const direction = change90 >= 1 ? "subido" : change90 <= -1 ? "bajado" : "se ha mantenido estable";
+  const pctText = Math.abs(change90) < 1 ? "" : ` un ${Math.abs(change90).toFixed(1)}%`;
+
+  const avg = points.length ? points.reduce((s, p) => s + p.price, 0) / points.length : price;
+  const ratio = avg > 0 ? price / avg : 1;
+  let valuation = "en línea con su historia reciente";
+  if (ratio > 1.07) valuation = "cara respecto a su historia reciente";
+  else if (ratio < 0.93) valuation = "barata respecto a su historia reciente";
+
+  const sector = finnhub?.profile?.finnhubIndustry || stock.sector || "su industria";
+  const what = stock.description.split(".")[0] || "opera en su mercado";
+
+  return `${stock.label} es una empresa de ${sector} que ${what.toLowerCase()}. En los últimos 3 meses su acción ha ${direction}${pctText}. Actualmente está ${valuation}.`;
+}
+
 const Acciones = () => {
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<StockMeta | null>(null);
@@ -375,6 +604,10 @@ const StockDetail = ({
 
   const signal = computeSignal(data);
   const risk = computeRisk(points);
+  const market = computeMarketStatus(stock.symbol);
+  const technical = computeTechnical(data);
+  const summary = buildExecutiveSummary(stock, data, finnhub);
+  const verdict = computeVerdict(data, technical, market, finnhub?.pe ?? null);
 
   // P/E from Finnhub when available; fallback to "Sin datos".
   const peValue: string =
@@ -383,28 +616,35 @@ const StockDetail = ({
   const high52 = meta.fiftyTwoWeekHigh;
   const low52 = meta.fiftyTwoWeekLow;
 
-  const signalStyles: Record<Signal, { bg: string; text: string; dot: string; emoji: string }> = {
+  const toneStyles: Record<"green" | "yellow" | "red", { bg: string; text: string; emoji: string }> = {
     green: {
       bg: "bg-accent-soft border-accent/40",
       text: "text-accent",
-      dot: "bg-accent",
       emoji: "🟢",
     },
     yellow: {
       bg: "bg-warning/10 border-warning/40",
       text: "text-[hsl(var(--warning))]",
-      dot: "bg-[hsl(var(--warning))]",
       emoji: "🟡",
     },
     red: {
       bg: "bg-destructive/10 border-destructive/40",
       text: "text-destructive",
-      dot: "bg-destructive",
       emoji: "🔴",
     },
   };
 
-  const sig = signalStyles[signal.color];
+  const sig = toneStyles[signal.color];
+  const marketTone = toneStyles[market.tone];
+  const verdictTone = toneStyles[verdict.tone];
+  const high52Tone =
+    technical.high52.tone === "neutral"
+      ? "text-muted-foreground"
+      : technical.high52.tone === "green"
+        ? "text-accent"
+        : technical.high52.tone === "yellow"
+          ? "text-[hsl(var(--warning))]"
+          : "text-destructive";
 
   return (
     <div className="space-y-8">
@@ -432,6 +672,28 @@ const StockDetail = ({
               {positive ? "+" : ""}
               {change.toFixed(2)} ({positive ? "+" : ""}
               {changePct.toFixed(2)}%) hoy
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* RESUMEN EJECUTIVO + ESTADO DEL MERCADO */}
+      <div className="grid md:grid-cols-[1.4fr_1fr] gap-4">
+        <div className="p-6 rounded-2xl bg-card border border-border shadow-soft">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+            Resumen ejecutivo
+          </p>
+          <p className="text-primary leading-relaxed">{summary}</p>
+        </div>
+        <div className={`p-6 rounded-2xl border-2 ${marketTone.bg}`}>
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+            Mejor momento del día
+          </p>
+          <div className="flex items-start gap-2">
+            <span className="text-xl leading-none">{market.emoji}</span>
+            <div>
+              <p className={`font-display font-semibold ${marketTone.text}`}>{market.title}</p>
+              <p className="text-xs text-muted-foreground mt-1">{market.detail}</p>
             </div>
           </div>
         </div>
@@ -502,6 +764,46 @@ const StockDetail = ({
               />
             </AreaChart>
           </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* ANÁLISIS TÉCNICO SIMPLE */}
+      <div className="p-6 rounded-2xl bg-card border border-border shadow-soft">
+        <h3 className="font-display text-lg font-semibold text-primary mb-4">Análisis técnico simple</h3>
+        <div className="grid sm:grid-cols-3 gap-4">
+          <div className="p-4 rounded-xl bg-muted/40 border border-border">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+              Tendencia 30 días
+            </p>
+            <p className="font-display text-base font-semibold text-primary">
+              <span className="mr-1.5">{technical.trend.emoji}</span>
+              {technical.trend.label}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {technical.change30 >= 0 ? "+" : ""}
+              {technical.change30.toFixed(1)}% vs hace 30 días
+            </p>
+          </div>
+          <div className="p-4 rounded-xl bg-muted/40 border border-border">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+              Distancia al máximo 52s
+            </p>
+            <p className={`font-display text-base font-semibold ${high52Tone}`}>
+              {technical.high52.text}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Verde &gt;20% · Amarillo 10–20% · Rojo &lt;10%
+            </p>
+          </div>
+          <div className="p-4 rounded-xl bg-muted/40 border border-border">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+              Momentum reciente
+            </p>
+            <p className="font-display text-base font-semibold text-primary">{technical.momentum.text}</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Basado en cierres consecutivos del periodo
+            </p>
+          </div>
         </div>
       </div>
 
@@ -582,22 +884,29 @@ const StockDetail = ({
         </p>
       </div>
 
-      {/* SIGNAL */}
-      <div className={`p-6 rounded-2xl border-2 ${sig.bg}`}>
-        <div className="flex items-center gap-3 mb-3">
-          <span className="text-2xl">{sig.emoji}</span>
-          <h3 className={`font-display text-xl font-bold ${sig.text}`}>{signal.label}</h3>
-        </div>
-        {signal.reasons.length > 0 && (
-          <ul className="text-sm text-primary/80 space-y-1 ml-9 list-disc">
-            {signal.reasons.map((r) => (
-              <li key={r}>{r}</li>
-            ))}
-          </ul>
-        )}
-        <p className="text-xs text-muted-foreground mt-4 ml-9">
-          ⚠️ Esto es orientativo, no asesoría financiera.
+      {/* VEREDICTO FINAL */}
+      <div className={`p-7 rounded-2xl border-2 ${verdictTone.bg}`}>
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+          Veredicto final
         </p>
+        <div className="flex items-center gap-3 mb-4">
+          <span className="text-3xl leading-none">{verdict.emoji}</span>
+          <h3 className={`font-display text-2xl md:text-3xl font-bold ${verdictTone.text}`}>
+            {verdict.title}
+          </h3>
+        </div>
+        <ul className="text-sm text-primary/85 space-y-1.5 ml-1 list-disc list-inside">
+          {verdict.reasons.map((r) => (
+            <li key={r}>{r}</li>
+          ))}
+        </ul>
+        <p className="text-xs text-muted-foreground mt-5">
+          ⚠️ Análisis orientativo basado en datos históricos. No es asesoría financiera.
+        </p>
+        {/* Mantenemos el semáforo previo como contexto adicional, sin ruido visual */}
+        {signal.reasons.length > 0 && (
+          <p className="sr-only">{sig.emoji} {signal.label}</p>
+        )}
       </div>
 
       {/* CTA */}
