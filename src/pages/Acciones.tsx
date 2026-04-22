@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Search, TrendingUp, TrendingDown, Info, ExternalLink, ShieldAlert, X } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
-import { fetchYahooChart, type ChartResponse, type Range } from "@/lib/yahooApi";
+import { fetchYahooChart, fetchFinnhubData, type ChartResponse, type FinnhubData, type Range } from "@/lib/yahooApi";
 import { FINTUAL_AFFILIATE } from "@/lib/affiliate";
 import { trackEvent } from "@/lib/analytics";
 import {
@@ -129,6 +129,7 @@ const Acciones = () => {
   const [selected, setSelected] = useState<StockMeta | null>(null);
   const [range, setRange] = useState<Range>("1y");
   const [data, setData] = useState<ChartResponse | null>(null);
+  const [finnhub, setFinnhub] = useState<FinnhubData | null>(null);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -150,6 +151,7 @@ const Acciones = () => {
     setLoading(true);
     setErr(null);
     setData(null);
+    setFinnhub(null);
     fetchYahooChart(selected.symbol, range, ctrl.signal)
       .then((res) => setData(res))
       .catch((e) => {
@@ -158,6 +160,14 @@ const Acciones = () => {
       })
       .finally(() => {
         if (!ctrl.signal.aborted) setLoading(false);
+      });
+    // Finnhub runs in parallel; failures are silent (we just show "Sin datos").
+    fetchFinnhubData(selected.symbol, ctrl.signal)
+      .then((res) => {
+        if (!ctrl.signal.aborted) setFinnhub(res);
+      })
+      .catch(() => {
+        if (!ctrl.signal.aborted) setFinnhub({ pe: null, profile: null });
       });
     return () => ctrl.abort();
   }, [selected, range]);
@@ -257,6 +267,7 @@ const Acciones = () => {
           <StockDetail
             stock={selected}
             data={data}
+            finnhub={finnhub}
             loading={loading}
             err={err}
             range={range}
@@ -318,6 +329,7 @@ const Acciones = () => {
 const StockDetail = ({
   stock,
   data,
+  finnhub,
   loading,
   err,
   range,
@@ -326,6 +338,7 @@ const StockDetail = ({
 }: {
   stock: StockMeta;
   data: ChartResponse | null;
+  finnhub: FinnhubData | null;
   loading: boolean;
   err: string | null;
   range: Range;
@@ -363,9 +376,9 @@ const StockDetail = ({
   const signal = computeSignal(data);
   const risk = computeRisk(points);
 
-  // Approx P/E unavailable from chart endpoint — use heuristic via 1y growth as a proxy is not honest.
-  // Show "Sin datos" for P/E and explain.
-  const peValue: string = "Sin datos";
+  // P/E from Finnhub when available; fallback to "Sin datos".
+  const peValue: string =
+    finnhub?.pe != null ? finnhub.pe.toFixed(2) : "Sin datos";
 
   const high52 = meta.fiftyTwoWeekHigh;
   const low52 = meta.fiftyTwoWeekLow;
@@ -496,9 +509,21 @@ const StockDetail = ({
       <div className="p-6 rounded-2xl bg-card border border-border shadow-soft">
         <h3 className="font-display text-lg font-semibold text-primary mb-2">¿Qué es esta empresa?</h3>
         <p className="text-muted-foreground leading-relaxed mb-3">{stock.description}</p>
-        <span className="inline-block px-3 py-1 rounded-full bg-accent-soft text-accent text-xs font-semibold">
-          Sector: {stock.sector}
-        </span>
+        <div className="flex flex-wrap gap-2">
+          <span className="inline-block px-3 py-1 rounded-full bg-accent-soft text-accent text-xs font-semibold">
+            Sector: {stock.sector}
+          </span>
+          {finnhub?.profile?.finnhubIndustry && (
+            <span className="inline-block px-3 py-1 rounded-full bg-muted text-muted-foreground text-xs font-semibold">
+              Industria: {finnhub.profile.finnhubIndustry}
+            </span>
+          )}
+          {finnhub?.profile?.name && finnhub.profile.name !== stock.label && (
+            <span className="inline-block px-3 py-1 rounded-full bg-muted text-muted-foreground text-xs font-semibold">
+              {finnhub.profile.name}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* METRICS */}

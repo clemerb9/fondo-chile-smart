@@ -68,6 +68,47 @@ export async function fetchYahooChart(
   return parseYahoo(json);
 }
 
+export interface FinnhubProfile {
+  name: string | null;
+  finnhubIndustry: string | null;
+  country: string | null;
+  currency: string | null;
+  marketCapitalization: number | null;
+  weburl: string | null;
+  logo: string | null;
+  exchange: string | null;
+}
+
+export interface FinnhubData {
+  pe: number | null;
+  profile: FinnhubProfile | null;
+}
+
+export async function fetchFinnhubData(
+  symbol: string,
+  signal?: AbortSignal,
+): Promise<FinnhubData> {
+  const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+  const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+  const url = `${SUPABASE_URL}/functions/v1/yahoo-finance?source=finnhub&symbol=${encodeURIComponent(symbol)}`;
+
+  const res = await fetch(url, {
+    signal,
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`,
+    },
+  });
+  if (!res.ok) {
+    return { pe: null, profile: null };
+  }
+  const json = (await res.json()) as Partial<FinnhubData> & { error?: string };
+  return {
+    pe: typeof json.pe === "number" && Number.isFinite(json.pe) ? json.pe : null,
+    profile: json.profile ?? null,
+  };
+}
+
 function parseYahoo(json: YahooRaw): ChartResponse {
   const r = json.chart?.result?.[0];
   if (!r) throw new Error("Sin datos para este símbolo");
