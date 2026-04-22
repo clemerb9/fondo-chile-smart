@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, BarChart3, Calculator, BookOpen, ShieldCheck, Sparkles, TrendingUp } from "lucide-react";
+import { ArrowRight, BarChart3, Calculator, BookOpen, ShieldCheck, Sparkles, TrendingUp, Compass } from "lucide-react";
 import BudgetRule from "@/components/BudgetRule";
 
 const features = [
@@ -78,6 +78,35 @@ const Home = () => {
             </div>
           </div>
         </div>
+      </section>
+
+      {/* DESCUBRE CTA */}
+      <section className="container pt-16 md:pt-20">
+        <Link
+          to="/descubre"
+          className="group relative block overflow-hidden rounded-3xl gradient-accent p-8 md:p-10 shadow-glow transition-smooth hover:scale-[1.01]"
+        >
+          <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-primary-foreground/10 blur-2xl" />
+          <div className="relative flex flex-col md:flex-row md:items-center gap-6 justify-between">
+            <div className="flex items-start md:items-center gap-5">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-accent-foreground/15 backdrop-blur-sm">
+                <Compass className="h-7 w-7 text-accent-foreground" strokeWidth={2.2} />
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-accent-foreground/80 uppercase tracking-wider mb-1">
+                  Inversión a tu medida
+                </p>
+                <h2 className="font-display text-2xl md:text-3xl font-bold text-accent-foreground text-balance">
+                  ¿No sabes por dónde empezar? Descúbrelo en 2 minutos
+                </h2>
+              </div>
+            </div>
+            <div className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground font-semibold shadow-elegant whitespace-nowrap group-hover:bg-primary-glow transition-smooth self-start md:self-auto">
+              Empezar test
+              <ArrowRight className="h-5 w-5 transition-smooth group-hover:translate-x-1" />
+            </div>
+          </div>
+        </Link>
       </section>
 
       {/* BUDGET RULE 50-30-20 */}
