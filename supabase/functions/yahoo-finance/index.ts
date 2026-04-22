@@ -7,6 +7,7 @@ const ALLOWED_RANGES = new Set(["1mo", "3mo", "1y"]);
 const ALLOWED_INTERVALS = new Set(["1d", "1wk"]);
 const FINTUAL_API_BASE = "https://fintual.cl/api";
 const FINTUAL_MAX_FUNDS = 20;
+const FINTUAL_ACTIVE_DAYS = 30;
 // Conservative symbol allow-list pattern: letters, digits, dot, hyphen, ^, =. 1-15 chars.
 const SYMBOL_RE = /^[A-Za-z0-9.\-\^=]{1,15}$/;
 
@@ -157,6 +158,7 @@ async function handleFintual(): Promise<Response> {
   try {
     const providersRes = await fetchJson<{ data?: AssetProvider[] }>(`${FINTUAL_API_BASE}/asset_providers`);
     const providers = providersRes.data ?? [];
+    const cutoffMs = Date.now() - FINTUAL_ACTIVE_DAYS * 24 * 60 * 60 * 1000;
     const funds: Array<{
       id: string;
       nombre: string;
@@ -213,10 +215,15 @@ async function handleFintual(): Promise<Response> {
       for (const result of pricedBatch) {
         if (funds.length >= FINTUAL_MAX_FUNDS) break;
         if (result.status === "fulfilled" && result.value) {
-          funds.push(result.value);
+          const ts = Date.parse(result.value.fecha);
+          if (Number.isFinite(ts) && ts >= cutoffMs) {
+            funds.push(result.value);
+          }
         }
       }
     }
+
+    funds.sort((a, b) => (a.fecha < b.fecha ? 1 : a.fecha > b.fecha ? -1 : 0));
 
     return new Response(JSON.stringify({ funds }), {
       status: 200,
