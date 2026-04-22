@@ -20,12 +20,6 @@ const features = [
   },
 ];
 
-const stats = [
-  { value: "8+", label: "Fondos comparados" },
-  { value: "30 años", label: "Plazo simulable" },
-  { value: "100%", label: "Gratis y en español" },
-];
-
 const Home = () => {
   return (
     <>
