@@ -129,6 +129,7 @@ const Acciones = () => {
   const [selected, setSelected] = useState<StockMeta | null>(null);
   const [range, setRange] = useState<Range>("1y");
   const [data, setData] = useState<ChartResponse | null>(null);
+  const [finnhub, setFinnhub] = useState<FinnhubData | null>(null);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -150,6 +151,7 @@ const Acciones = () => {
     setLoading(true);
     setErr(null);
     setData(null);
+    setFinnhub(null);
     fetchYahooChart(selected.symbol, range, ctrl.signal)
       .then((res) => setData(res))
       .catch((e) => {
@@ -158,6 +160,14 @@ const Acciones = () => {
       })
       .finally(() => {
         if (!ctrl.signal.aborted) setLoading(false);
+      });
+    // Finnhub runs in parallel; failures are silent (we just show "Sin datos").
+    fetchFinnhubData(selected.symbol, ctrl.signal)
+      .then((res) => {
+        if (!ctrl.signal.aborted) setFinnhub(res);
+      })
+      .catch(() => {
+        if (!ctrl.signal.aborted) setFinnhub({ pe: null, profile: null });
       });
     return () => ctrl.abort();
   }, [selected, range]);
