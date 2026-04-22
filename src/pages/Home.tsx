@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, BarChart3, Calculator, BookOpen, ShieldCheck, Sparkles, TrendingUp, Compass } from "lucide-react";
+import { ArrowRight, BarChart3, Calculator, BookOpen, ShieldCheck, TrendingUp } from "lucide-react";
 import BudgetRule from "@/components/BudgetRule";
 
 const features = [
