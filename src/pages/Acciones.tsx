@@ -376,9 +376,9 @@ const StockDetail = ({
   const signal = computeSignal(data);
   const risk = computeRisk(points);
 
-  // Approx P/E unavailable from chart endpoint — use heuristic via 1y growth as a proxy is not honest.
-  // Show "Sin datos" for P/E and explain.
-  const peValue: string = "Sin datos";
+  // P/E from Finnhub when available; fallback to "Sin datos".
+  const peValue: string =
+    finnhub?.pe != null ? finnhub.pe.toFixed(2) : "Sin datos";
 
   const high52 = meta.fiftyTwoWeekHigh;
   const low52 = meta.fiftyTwoWeekLow;
