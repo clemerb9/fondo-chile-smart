@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, ArrowUpDown, ExternalLink, Filter, Info, AlertTriangle } from "lucide-react";
 import { fondos, ULTIMA_ACTUALIZACION, type Riesgo, type Fondo } from "@/data/funds";
-import { fetchFintualFunds, type FintualFund } from "@/lib/fintualApi";
+import { fetchFintualFunds, type FintualFundQuote } from "@/lib/yahooApi";
 import { getFundCta } from "@/lib/affiliate";
 import { trackEvent } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
@@ -24,7 +24,6 @@ const formatCLP = (n: number | null): string => {
 type SortKey = "rent1" | "rent3" | "comision" | "precio" | null;
 type SortDir = "asc" | "desc";
 
-// Unified row shape for rendering both API and fallback data
 interface FundRow {
   id: string;
   nombre: string;
@@ -37,7 +36,7 @@ interface FundRow {
   fecha: string | null;
 }
 
-const fromFintual = (f: FintualFund): FundRow => ({
+const fromFintual = (f: FintualFundQuote): FundRow => ({
   id: f.id,
   nombre: f.nombre,
   administradora: f.administradora,
@@ -83,7 +82,7 @@ const Comparador = () => {
     setLoading(true);
     fetchFintualFunds(controller.signal)
       .then((funds) => {
-        setRows(funds.map(fromFintual));
+        setRows(funds.filter((fund) => Number.isFinite(fund.precio)).map(fromFintual));
         setUsingFallback(false);
       })
       .catch((err) => {
@@ -132,7 +131,7 @@ const Comparador = () => {
           Encuentra el fondo que mejor se adapta a ti
         </h1>
         <p className="text-lg text-muted-foreground">
-          Datos en vivo desde la API pública de Fintual. Filtra por riesgo y ordena por valor cuota o comisión.
+          Datos en vivo desde Fintual vía Lovable Cloud. Filtra por riesgo y ordena por valor cuota.
         </p>
       </div>
 
@@ -163,9 +162,9 @@ const Comparador = () => {
               <Info className="h-4 w-4" strokeWidth={2.5} />
             </div>
             <div>
-              <p className="text-sm font-semibold text-primary">Valor cuota en vivo · API Fintual</p>
+                <p className="text-sm font-semibold text-primary">Valor cuota en vivo · API Fintual</p>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Precios actualizados directamente desde fintual.cl/api. Verifica en el sitio oficial antes de invertir.
+                  Mostramos hasta 20 fondos con valor cuota válido y su fecha más reciente disponible.
               </p>
             </div>
           </div>
@@ -246,7 +245,7 @@ const Comparador = () => {
                   <th className="px-6 py-4">Administradora</th>
                   <th className="px-6 py-4">
                     <button onClick={() => toggleSort("precio")} className="inline-flex items-center gap-1.5 hover:text-primary transition-smooth">
-                      Valor cuota (CLP) <SortIcon k="precio" />
+                      Valor cuota <SortIcon k="precio" />
                     </button>
                   </th>
                   <th className="px-6 py-4">Riesgo</th>
@@ -265,7 +264,7 @@ const Comparador = () => {
                           {formatCLP(f.precio)}
                           {f.fecha && (
                             <div className="text-[11px] text-muted-foreground font-sans font-normal mt-0.5">
-                              al {formatFecha(f.fecha)}
+                              Última actualización: {formatFecha(f.fecha)}
                             </div>
                           )}
                         </td>
@@ -323,10 +322,10 @@ const Comparador = () => {
                   </span>
                 </div>
                 <div className="py-3 border-y border-border">
-                  <div className="text-xs text-muted-foreground">Valor cuota (CLP)</div>
+                  <div className="text-xs text-muted-foreground">Valor cuota</div>
                   <div className="font-display font-semibold text-primary text-lg">{formatCLP(f.precio)}</div>
                   {f.fecha && (
-                    <div className="text-[11px] text-muted-foreground mt-0.5">al {formatFecha(f.fecha)}</div>
+                    <div className="text-[11px] text-muted-foreground mt-0.5">Última actualización: {formatFecha(f.fecha)}</div>
                   )}
                 </div>
                 <a
@@ -360,7 +359,7 @@ const Comparador = () => {
       {/* Footer note */}
       {!loading && (
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          Fuente: API Fintual · Datos oficiales CMF Chile
+          Fuente: API pública de Fintual
         </p>
       )}
     </div>
