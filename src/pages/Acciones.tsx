@@ -17,6 +17,7 @@ import {
 
 type StockMeta = { symbol: string; label: string; sector: string; description: string };
 
+// Definición de las 25 acciones organizadas en 4 grupos con scroll horizontal
 const STOCK_GROUPS = [
   {
     name: "🇺🇸 Tecnología",
