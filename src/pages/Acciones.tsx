@@ -17,28 +17,57 @@ import {
 
 type StockMeta = { symbol: string; label: string; sector: string; description: string };
 
-const POPULAR: StockMeta[] = [
-  { symbol: "AAPL", label: "Apple", sector: "Tecnología",
-    description: "Fabricante del iPhone, Mac y servicios digitales. Una de las marcas más valiosas del mundo." },
-  { symbol: "AMZN", label: "Amazon", sector: "Comercio / Tecnología",
-    description: "Gigante del e-commerce y la nube (AWS). Vende de todo y aloja gran parte de internet." },
-  { symbol: "GOOGL", label: "Alphabet (Google)", sector: "Tecnología",
-    description: "Dueña de Google, YouTube y Android. Su negocio principal es la publicidad digital." },
-  { symbol: "MSFT", label: "Microsoft", sector: "Tecnología",
-    description: "Windows, Office, Xbox y la nube Azure. Uno de los pilares del software corporativo." },
-  { symbol: "TSLA", label: "Tesla", sector: "Automotriz / Energía",
-    description: "Fabricante de autos eléctricos y baterías. Famosa por su volatilidad bursátil." },
-  { symbol: "FALABELLA.SN", label: "Falabella", sector: "Retail",
-    description: "Cadena chilena de retail con tiendas, banco y marketplace en varios países de la región." },
-  { symbol: "COPEC.SN", label: "Empresas Copec", sector: "Energía / Forestal",
-    description: "Conglomerado chileno con combustibles, forestal (Arauco) y energía." },
-  { symbol: "BSANTANDER.SN", label: "Banco Santander Chile", sector: "Banca",
-    description: "Uno de los bancos más grandes de Chile, filial del Grupo Santander." },
-  { symbol: "ENELCHILE.SN", label: "Enel Chile", sector: "Energía",
-    description: "Principal generadora y distribuidora eléctrica del país." },
-  { symbol: "CENCOSUD.SN", label: "Cencosud", sector: "Retail",
-    description: "Dueña de Jumbo, Santa Isabel, Easy y París. Retail multiformato en Latinoamérica." },
+const STOCK_GROUPS = [
+  {
+    name: "🇺🇸 Tecnología",
+    stocks: [
+      { symbol: "AAPL", label: "Apple", sector: "Tecnología", description: "Fabricar el iPhone, Mac y servicios digitales." },
+      { symbol: "AMZN", label: "Amazon", sector: "Comercio / Tecnología", description: "El comercio electrónico y la nube (AWS)." },
+      { symbol: "GOOGL", label: "Alphabet (Google)", sector: "Tecnología", description: "La publicidad digital, búsquedas y Android." },
+      { symbol: "MSFT", label: "Microsoft", sector: "Tecnología", description: "Desarrollar software corporativo, Windows y la nube Azure." },
+      { symbol: "TSLA", label: "Tesla", sector: "Automotriz / Energía", description: "Fabricar autos eléctricos y baterías." },
+      { symbol: "NVDA", label: "NVIDIA", sector: "Tecnología", description: "Diseñar chips de inteligencia artificial y tarjetas gráficas." },
+      { symbol: "META", label: "Meta", sector: "Tecnología", description: "Desarrollar redes sociales (Facebook, Instagram) y realidad virtual." },
+      { symbol: "NFLX", label: "Netflix", sector: "Tecnología / Entretenimiento", description: "El streaming global de video y entretenimiento." },
+      { symbol: "AMD", label: "AMD", sector: "Tecnología", description: "Diseñar procesadores y tarjetas gráficas para PC y servidores." },
+      { symbol: "CRM", label: "Salesforce", sector: "Tecnología", description: "Desarrollar software de gestión de relaciones con clientes (CRM)." },
+    ]
+  },
+  {
+    name: "🇺🇸 Otras",
+    stocks: [
+      { symbol: "JPM", label: "JPMorgan Chase", sector: "Finanzas", description: "Ofrecer servicios bancarios y financieros a nivel mundial." },
+      { symbol: "V", label: "Visa", sector: "Finanzas", description: "Operar una red global de pagos y tarjetas de crédito." },
+      { symbol: "WMT", label: "Walmart", sector: "Retail", description: "La venta minorista a través de la cadena de supermercados más grande del mundo." },
+      { symbol: "KO", label: "Coca-Cola", sector: "Consumo", description: "La producción y venta de bebidas no alcohólicas a nivel mundial." },
+      { symbol: "XOM", label: "ExxonMobil", sector: "Energía", description: "La exploración, producción y venta de petróleo y energía." },
+    ]
+  },
+  {
+    name: "🇨🇱 Chile",
+    stocks: [
+      { symbol: "FALABELLA.SN", label: "Falabella", sector: "Retail", description: "La venta minorista, servicios financieros y comercio electrónico en Latinoamérica." },
+      { symbol: "COPEC.SN", label: "Empresas Copec", sector: "Energía / Forestal", description: "La distribución de combustibles, el sector forestal (Arauco) y energía." },
+      { symbol: "BSANTANDER.SN", label: "Banco Santander Chile", sector: "Banca", description: "Ofrecer servicios bancarios y financieros en Chile." },
+      { symbol: "ENELCHILE.SN", label: "Enel Chile", sector: "Energía", description: "La generación y distribución eléctrica en el país." },
+      { symbol: "CENCOSUD.SN", label: "Cencosud", sector: "Retail", description: "La venta minorista multiformato en Latinoamérica." },
+      { symbol: "LTM.SN", label: "LATAM Airlines", sector: "Transporte", description: "El transporte aéreo de pasajeros y carga en Latinoamérica." },
+      { symbol: "SQMB.SN", label: "SQM", sector: "Minería", description: "La producción y venta de litio y fertilizantes a nivel mundial." },
+      { symbol: "CHILE.SN", label: "Banco de Chile", sector: "Banca", description: "Ofrecer servicios comerciales y financieros en Chile." },
+      { symbol: "CCU.SN", label: "CCU", sector: "Consumo", description: "La producción de cervezas, bebidas y licores." },
+    ]
+  },
+  {
+    name: "📦 ETFs",
+    stocks: [
+      { symbol: "SPY", label: "S&P 500 ETF", sector: "ETF", description: "Replicar el rendimiento de las 500 empresas más grandes de EE.UU." },
+      { symbol: "QQQ", label: "Invesco QQQ", sector: "ETF", description: "Replicar el índice Nasdaq 100, con fuerte enfoque en tecnología." },
+      { symbol: "VTI", label: "Vanguard Total Stock", sector: "ETF", description: "Invertir en prácticamente todo el mercado de valores de EE.UU." },
+    ]
+  }
 ];
+
+const POPULAR: StockMeta[] = STOCK_GROUPS.flatMap(g => g.stocks);
 
 const formatPrice = (n: number, currency: string) => {
   try {
@@ -297,60 +326,75 @@ function computeVerdict(
   const price = meta.regularMarketPrice;
   const avg = points.length ? points.reduce((s, p) => s + p.price, 0) / points.length : price;
   const belowAvg = price < avg;
-  const nearHigh = tech.high52.tone === "red";
+  const nearHigh = tech.high52.tone === "red"; // red is distancePct < 10%
   const reasons: string[] = [];
 
-  // Strong red signals.
   const peHigh = pe != null && pe > 35;
-  if (nearHigh && tech.trend.dir === "down" && (peHigh || tech.change30 < -8)) {
-    reasons.push("Precio cerca del máximo anual");
-    reasons.push(`Tendencia 30 días bajista (${tech.change30.toFixed(1)}%)`);
-    if (peHigh) reasons.push(`P/E elevado (${pe!.toFixed(1)})`);
-    return { tone: "red", emoji: "🔴", title: "Precaución", reasons };
-  }
-
-  // Strong green signals.
   const peOk = pe == null || pe < 30;
-  if (belowAvg && market.state === "open" && tech.trend.dir === "up" && peOk) {
-    reasons.push("Precio bajo el promedio reciente");
-    reasons.push(`Tendencia 30 días alcista (+${tech.change30.toFixed(1)}%)`);
-    reasons.push(pe != null ? `P/E razonable (${pe.toFixed(1)})` : "Mercado abierto, fácil de operar");
-    return { tone: "green", emoji: "🟢", title: "Momento favorable", reasons };
+
+  if (nearHigh && peHigh && tech.trend.dir === "down") {
+    reasons.push("Cerca del máximo 52 semanas (dentro del 10%)");
+    reasons.push(`P/E mayor a 35 (${pe!.toFixed(1)})`);
+    reasons.push(`Tendencia bajista (${tech.change30.toFixed(1)}%)`);
+    return { tone: "red", emoji: "🔴", title: "PRECAUCIÓN", reasons };
   }
 
-  // Neutral fallback.
-  if (belowAvg) reasons.push("Precio bajo el promedio reciente");
-  if (!belowAvg) reasons.push("Precio sobre el promedio reciente");
-  reasons.push(`Tendencia 30 días: ${tech.trend.label.toLowerCase()} (${tech.change30.toFixed(1)}%)`);
-  if (pe != null) reasons.push(`P/E actual: ${pe.toFixed(1)}`);
-  else reasons.push("Sin P/E disponible");
-  return { tone: "yellow", emoji: "🟡", title: "Momento neutro", reasons };
+  if (belowAvg && peOk && tech.trend.dir === "up") {
+    reasons.push("Precio bajo promedio 52 semanas");
+    if (pe != null) reasons.push(`P/E menor a 30 (${pe.toFixed(1)})`);
+    reasons.push(`Tendencia alcista (+${tech.change30.toFixed(1)}%)`);
+    return { tone: "green", emoji: "🟢", title: "MOMENTO FAVORABLE", reasons };
+  }
+
+  reasons.push("Señales mixtas");
+  return { tone: "yellow", emoji: "🟡", title: "MOMENTO NEUTRO", reasons };
 }
 
 function buildExecutiveSummary(
   stock: StockMeta,
   data: ChartResponse,
   finnhub: FinnhubData | null,
-): string {
-  const { meta, points } = data;
-  const price = meta.regularMarketPrice;
-  const lastIdx = points.length - 1;
-  const idx90 = Math.max(0, lastIdx - 65);
-  const price90Ago = points[idx90]?.price ?? price;
-  const change90 = ((price - price90Ago) / price90Ago) * 100;
-  const direction = change90 >= 1 ? "subido" : change90 <= -1 ? "bajado" : "se ha mantenido estable";
-  const pctText = Math.abs(change90) < 1 ? "" : ` un ${Math.abs(change90).toFixed(1)}%`;
+  tech: TechnicalAnalysis
+): string[] {
+  const sectorTranslations: Record<string, string> = {
+    "Technology": "Tecnología",
+    "Financial Services": "Servicios Financieros",
+    "Consumer Defensive": "Consumo Defensivo",
+    "Energy": "Energía",
+    "Healthcare": "Salud",
+    "Communication Services": "Comunicaciones",
+    "Consumer Cyclical": "Consumo Cíclico",
+    "Industrials": "Industria"
+  };
 
-  const avg = points.length ? points.reduce((s, p) => s + p.price, 0) / points.length : price;
-  const ratio = avg > 0 ? price / avg : 1;
-  let valuation = "en línea con su historia reciente";
-  if (ratio > 1.07) valuation = "cara respecto a su historia reciente";
-  else if (ratio < 0.93) valuation = "barata respecto a su historia reciente";
+  const rawSector = finnhub?.profile?.finnhubIndustry || stock.sector || "su industria";
+  const sector = sectorTranslations[rawSector] || rawSector;
+  
+  const change30 = tech.change30;
+  let direction = "se ha mantenido estable";
+  let pctText = "";
+  if (change30 >= 0) {
+    direction = "subido";
+    pctText = ` ${change30.toFixed(1)}%`;
+  } else {
+    direction = "bajado";
+    pctText = ` ${Math.abs(change30).toFixed(1)}%`;
+  }
+  
+  const dist = tech.high52.distancePct;
+  let distStr = "bajo";
+  if (dist != null) {
+    if (dist < 2) distStr = "en";
+    else if (dist < 10) distStr = "cerca de";
+  }
 
-  const sector = finnhub?.profile?.finnhubIndustry || stock.sector || "su industria";
-  const what = stock.description.split(".")[0] || "opera en su mercado";
+  const desc = stock.description.charAt(0).toLowerCase() + stock.description.slice(1);
 
-  return `${stock.label} es una empresa de ${sector} dedicada a ${what.toLowerCase()}. En los últimos 3 meses su acción ha ${direction}${pctText}. Actualmente está ${valuation}.`;
+  return [
+    `${stock.label} es una empresa de ${sector} dedicada a ${desc}`,
+    `En los últimos 30 días su acción ha ${direction}${pctText}.`,
+    `Actualmente está ${distStr} su máximo anual.`
+  ];
 }
 
 const Acciones = () => {
@@ -364,12 +408,15 @@ const Acciones = () => {
   const [showModal, setShowModal] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
-  const filteredPopular = useMemo(() => {
+  const filteredGroups = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return POPULAR;
-    return POPULAR.filter(
-      (s) => s.label.toLowerCase().includes(q) || s.symbol.toLowerCase().includes(q),
-    );
+    if (!q) return STOCK_GROUPS;
+    return STOCK_GROUPS.map((g) => ({
+      ...g,
+      stocks: g.stocks.filter(
+        (s) => s.label.toLowerCase().includes(q) || s.symbol.toLowerCase().includes(q),
+      ),
+    })).filter((g) => g.stocks.length > 0);
   }, [query]);
 
   useEffect(() => {
@@ -458,24 +505,31 @@ const Acciones = () => {
         </form>
 
         {/* Popular chips */}
-        <div className="flex flex-wrap gap-2 mb-10">
-          {filteredPopular.map((s) => {
-            const active = selected?.symbol === s.symbol;
-            return (
-              <button
-                key={s.symbol}
-                onClick={() => handleSelect(s)}
-                className={`px-4 py-2 rounded-full text-sm font-medium border transition-smooth ${
-                  active
-                    ? "bg-accent text-accent-foreground border-accent shadow-glow"
-                    : "bg-card border-border text-primary hover:border-accent/50 hover:bg-accent-soft"
-                }`}
-              >
-                {s.symbol}
-              </button>
-            );
-          })}
-          {filteredPopular.length === 0 && (
+        <div className="mb-10 space-y-6">
+          {filteredGroups.map((group) => (
+            <div key={group.name}>
+              <h3 className="text-sm font-semibold text-muted-foreground mb-3">{group.name}</h3>
+              <div className="flex overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:flex-wrap gap-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                {group.stocks.map((s) => {
+                  const active = selected?.symbol === s.symbol;
+                  return (
+                    <button
+                      key={s.symbol}
+                      onClick={() => handleSelect(s)}
+                      className={`whitespace-nowrap shrink-0 px-4 py-2 rounded-full text-sm font-medium border transition-smooth ${
+                        active
+                          ? "bg-accent text-accent-foreground border-accent shadow-glow"
+                          : "bg-card border-border text-primary hover:border-accent/50 hover:bg-accent-soft"
+                      }`}
+                    >
+                      {s.symbol}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+          {filteredGroups.length === 0 && (
             <p className="text-sm text-muted-foreground">
               Presiona Enter para buscar "{query}" como símbolo.
             </p>
@@ -606,7 +660,7 @@ const StockDetail = ({
   const risk = computeRisk(points);
   const market = computeMarketStatus(stock.symbol);
   const technical = computeTechnical(data);
-  const summary = buildExecutiveSummary(stock, data, finnhub);
+  const summary = buildExecutiveSummary(stock, data, finnhub, technical);
   const verdict = computeVerdict(data, technical, market, finnhub?.pe ?? null);
 
   // P/E from Finnhub when available; fallback to "Sin datos".
@@ -683,7 +737,11 @@ const StockDetail = ({
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
             Resumen ejecutivo
           </p>
-          <p className="text-primary leading-relaxed">{summary}</p>
+          <div className="text-primary leading-relaxed space-y-1">
+            {summary.map((line, i) => (
+              <p key={i}>{line}</p>
+            ))}
+          </div>
         </div>
         <div className={`p-6 rounded-2xl border-2 ${marketTone.bg}`}>
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
