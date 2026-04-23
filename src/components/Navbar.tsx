@@ -1,5 +1,5 @@
 import { Link, NavLink, useLocation } from "react-router-dom";
-import { TrendingUp, Menu, X } from "lucide-react";
+import { TrendingUp, Menu, X, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -46,10 +46,10 @@ export const Navbar = () => {
         </nav>
 
         <Link
-          to="/comparador"
-          className="hidden md:inline-flex items-center px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold transition-smooth hover:bg-primary-glow shadow-soft"
+          to="/comenzar"
+          className="hidden md:inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold transition-smooth hover:bg-primary-glow shadow-soft"
         >
-          Comenzar
+          Comenzar <ArrowRight className="h-4 w-4" />
         </Link>
 
         <button

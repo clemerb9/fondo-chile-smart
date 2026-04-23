@@ -44,7 +44,7 @@ const Home = () => {
           <div className="grid md:grid-cols-2 gap-5 md:gap-6 max-w-5xl mx-auto animate-fade-up" style={{ animationDelay: "200ms" }}>
             {/* CARD 1 — Empezar desde cero (green/accent) */}
             <Link
-              to="/descubre"
+              to="/comenzar"
               className="group relative overflow-hidden rounded-3xl bg-card p-8 md:p-10 shadow-elegant border-2 border-accent/30 hover:border-accent transition-smooth hover:-translate-y-1"
             >
               <div className="absolute -top-12 -right-12 w-44 h-44 rounded-full bg-accent/15 blur-2xl transition-smooth group-hover:bg-accent/25" />
