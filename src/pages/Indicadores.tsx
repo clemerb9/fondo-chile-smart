@@ -24,6 +24,14 @@ type ProcessedIndicator = {
 
 const INDICATORS_TO_FETCH = ["dolar", "euro", "uf", "utm", "ipc"];
 
+const FRECUENCIA_ACTUALIZACION: Record<string, string> = {
+  dolar: "Se actualiza en días hábiles",
+  euro: "Se actualiza en días hábiles",
+  uf: "Se actualiza diariamente",
+  utm: "Se actualiza mensualmente",
+  ipc: "Se publica mensualmente por el INE",
+};
+
 export default function Indicadores() {
   const [data, setData] = useState<ProcessedIndicator[]>([]);
   const [loading, setLoading] = useState(true);
@@ -167,6 +175,9 @@ export default function Indicadores() {
                     <div className="flex items-center gap-1.5 text-muted-foreground/80 mt-1">
                       <Calendar className="w-3.5 h-3.5" />
                       <span className="truncate">{formatDate(ind.fecha)}</span>
+                    </div>
+                    <div className="text-[11px] text-muted-foreground/60 mt-1.5">
+                      {FRECUENCIA_ACTUALIZACION[ind.codigo]}
                     </div>
                   </div>
                 </div>
