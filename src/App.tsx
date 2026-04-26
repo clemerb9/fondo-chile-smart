@@ -12,6 +12,7 @@ import Descubre from "./pages/Descubre";
 import Acciones from "./pages/Acciones";
 import Comenzar from "./pages/Comenzar";
 import Indicadores from "./pages/Indicadores";
+import FAQ from "./pages/FAQ";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/acciones" element={<Acciones />} />
             <Route path="/comenzar" element={<Comenzar />} />
             <Route path="/indicadores" element={<Indicadores />} />
+            <Route path="/faq" element={<FAQ />} />
             <Route path="/glosario" element={<Glosario />} />
           </Route>
           <Route path="*" element={<NotFound />} />

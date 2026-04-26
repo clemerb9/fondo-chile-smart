@@ -10,6 +10,7 @@ const links = [
   { to: "/acciones", label: "Analiza una acción" },
   { to: "/simulador", label: "Simulador" },
   { to: "/indicadores", label: "Indicadores" },
+  { to: "/faq", label: "FAQ" },
   { to: "/glosario", label: "Glosario" },
 ];
 
