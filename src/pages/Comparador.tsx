@@ -298,21 +298,28 @@ const Comparador = () => {
                           </span>
                         </td>
                         <td className="px-6 pt-5 pb-2 text-right">
-                          <a
-                            href={cta.href}
-                            target="_blank"
-                            rel="noopener noreferrer sponsored"
-                            onClick={() => cta.isAffiliate && trackEvent("fintual_cta_clicked", { location: "comparador_table", fund: f.nombre })}
-                            className={cn(
-                              "inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-smooth",
-                              cta.isAffiliate
-                                ? "bg-primary text-primary-foreground hover:bg-primary-glow"
-                                : "bg-secondary text-primary border border-border hover:bg-muted"
+                          <div className="flex flex-col items-end gap-1.5 mt-1 sm:mt-0">
+                            <a
+                              href={cta.href}
+                              target="_blank"
+                              rel="noopener noreferrer sponsored"
+                              onClick={() => cta.isAffiliate && trackEvent("fintual_cta_clicked", { location: "comparador_table", fund: f.nombre })}
+                              className={cn(
+                                "inline-flex items-center gap-1.5 rounded-lg font-semibold transition-all hover:-translate-y-0.5 whitespace-nowrap",
+                                cta.isAffiliate
+                                  ? "px-5 py-2.5 bg-[#00D18B] hover:bg-[#00B97A] text-white shadow-md hover:shadow-[0_0_15px_rgba(0,209,139,0.4)]"
+                                  : "px-4 py-2 bg-secondary text-primary border border-border hover:bg-muted text-sm"
+                              )}
+                            >
+                              {cta.label}
+                              {cta.isAffiliate ? "" : <ExternalLink className="h-3.5 w-3.5" />}
+                            </a>
+                            {cta.isAffiliate && (
+                              <p className="text-[10px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
+                                ⏱ 5 min · Desde $1 · Sin comisión
+                              </p>
                             )}
-                          >
-                            {cta.label}
-                            <ExternalLink className="h-3.5 w-3.5" />
-                          </a>
+                          </div>
                         </td>
                       </tr>
                       <tr>
@@ -357,21 +364,28 @@ const Comparador = () => {
                     </div>
                   )}
                 </div>
-                <a
-                  href={cta.href}
-                  target="_blank"
-                  rel="noopener noreferrer sponsored"
-                  onClick={() => cta.isAffiliate && trackEvent("fintual_cta_clicked", { location: "comparador_card", fund: f.nombre })}
-                  className={cn(
-                    "mt-3 inline-flex w-full items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold transition-smooth",
-                    cta.isAffiliate
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-secondary text-primary border border-border"
+                <div className="mt-4 flex flex-col gap-2">
+                  <a
+                    href={cta.href}
+                    target="_blank"
+                    rel="noopener noreferrer sponsored"
+                    onClick={() => cta.isAffiliate && trackEvent("fintual_cta_clicked", { location: "comparador_card", fund: f.nombre })}
+                    className={cn(
+                      "inline-flex w-full items-center justify-center gap-1.5 rounded-lg font-semibold transition-all hover:-translate-y-0.5",
+                      cta.isAffiliate
+                        ? "px-5 py-3.5 bg-[#00D18B] hover:bg-[#00B97A] text-white shadow-md hover:shadow-[0_0_15px_rgba(0,209,139,0.4)]"
+                        : "px-4 py-2.5 bg-secondary text-primary border border-border text-sm"
+                    )}
+                  >
+                    {cta.label}
+                    {cta.isAffiliate ? "" : <ExternalLink className="h-3.5 w-3.5" />}
+                  </a>
+                  {cta.isAffiliate && (
+                    <p className="text-[11px] font-medium text-center text-emerald-700 bg-emerald-50 px-2.5 py-1.5 rounded border border-emerald-100">
+                      ⏱ Tarda solo 5 minutos · Desde $1 · Sin comisión
+                    </p>
                   )}
-                >
-                  {cta.label}
-                  <ExternalLink className="h-3.5 w-3.5" />
-                </a>
+                </div>
                 <div className="mt-3 pt-3 border-t border-border">
                   <CredibilityBadge />
                 </div>

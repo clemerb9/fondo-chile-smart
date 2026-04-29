@@ -19,6 +19,7 @@ import {
 } from "recharts";
 import { FINTUAL_AFFILIATE } from "@/lib/affiliate";
 import { trackEvent } from "@/lib/analytics";
+import { FintualCtaCard } from "@/components/FintualCtaCard";
 
 // --- Datos del formulario ---
 
@@ -303,6 +304,7 @@ const Comenzar = () => {
 
         {step === 5 && (
           <div className="space-y-12 animate-fade-up">
+            <FintualCtaCard source="comenzar" />
             {/* Header Result */}
             <div className="text-center space-y-4">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent-soft text-accent font-semibold text-sm mb-2">
@@ -381,15 +383,6 @@ const Comenzar = () => {
 
             {/* CTA */}
             <div className="text-center space-y-6 pt-4 border-t border-border">
-              <a
-                href={FINTUAL_AFFILIATE}
-                target="_blank"
-                rel="noopener sponsored"
-                onClick={() => trackEvent("fintual_cta_clicked", { source: "comenzar_results" })}
-                className="inline-flex w-full md:w-auto items-center justify-center gap-2 px-10 py-5 rounded-2xl bg-[#00D18B] hover:bg-[#00B97A] text-white font-bold text-lg transition-all hover:shadow-[0_0_20px_rgba(0,209,139,0.4)] hover:-translate-y-1"
-              >
-                Invertir en Fintual <ArrowRight className="h-5 w-5" />
-              </a>
               <p className="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">
                 Esto no es asesoría financiera. Rentabilidades pasadas no garantizan resultados futuros. · Infórmate en CMF Chile
               </p>

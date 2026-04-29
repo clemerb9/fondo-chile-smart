@@ -4,6 +4,7 @@ import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YA
 import { fondos } from "@/data/funds";
 import { TrendingUp, Wallet, PiggyBank } from "lucide-react";
 import { HowToStart } from "@/components/HowToStart";
+import { FintualCtaCard } from "@/components/FintualCtaCard";
 import { trackEvent } from "@/lib/analytics";
 
 const formatCLP = (n: number) =>
@@ -221,6 +222,9 @@ const Simulador = () => {
             </div>
           </div>
         </div>
+      </div>
+      <div className="mt-8 mb-16">
+        <FintualCtaCard source="simulador" />
       </div>
       <HowToStart />
     </div>

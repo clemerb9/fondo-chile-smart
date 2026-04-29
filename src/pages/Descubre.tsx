@@ -347,21 +347,32 @@ const Descubre = () => {
                         </span>
                       </div>
                     </div>
-                    <a
-                      href={cta.href}
-                      target="_blank"
-                      rel={cta.isAffiliate ? "noopener sponsored" : "noopener noreferrer"}
-                      onClick={() =>
-                        trackEvent("fintual_cta_clicked", {
-                          source: "descubre",
-                          fund: f.nombre,
-                          profile,
-                        })
-                      }
-                      className="inline-flex items-center gap-2 px-5 py-3 rounded-xl gradient-accent text-accent-foreground font-semibold transition-smooth hover:shadow-glow hover:scale-[1.02] whitespace-nowrap"
-                    >
-                      Invertir aquí <ExternalLink className="h-4 w-4" />
-                    </a>
+                    <div className="flex flex-col items-start sm:items-end gap-2 mt-2 sm:mt-0">
+                      <a
+                        href={cta.href}
+                        target="_blank"
+                        rel={cta.isAffiliate ? "noopener sponsored" : "noopener noreferrer"}
+                        onClick={() =>
+                          trackEvent("fintual_cta_clicked", {
+                            source: "descubre",
+                            fund: f.nombre,
+                            profile,
+                          })
+                        }
+                        className={`inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition-all hover:-translate-y-0.5 whitespace-nowrap w-full sm:w-auto ${
+                          cta.isAffiliate
+                            ? "px-6 py-4 bg-[#00D18B] hover:bg-[#00B97A] text-white shadow-lg hover:shadow-[0_0_15px_rgba(0,209,139,0.4)]"
+                            : "px-5 py-3 gradient-accent text-accent-foreground hover:shadow-glow"
+                        }`}
+                      >
+                        {cta.label} {cta.isAffiliate ? "" : <ExternalLink className="h-4 w-4" />}
+                      </a>
+                      {cta.isAffiliate && (
+                        <p className="text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-100">
+                          ⏱ 5 min · Desde $1 · Sin comisión
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
               );

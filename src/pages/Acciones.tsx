@@ -585,20 +585,25 @@ const Acciones = () => {
                 (fondos diversificados que la incluyen) o de un <strong className="text-primary">bróker
                 internacional</strong> que opere acciones individuales.
               </p>
-              <a
-                href={FINTUAL_AFFILIATE}
-                target="_blank"
-                rel="noopener sponsored"
-                onClick={() =>
-                  trackEvent("fintual_cta_clicked", {
-                    source: "acciones_modal",
-                    symbol: selected.symbol,
-                  })
-                }
-                className="inline-flex w-full items-center justify-center gap-2 px-6 py-3 rounded-xl gradient-accent text-accent-foreground font-semibold transition-smooth hover:shadow-glow"
-              >
-                Ver opciones <ExternalLink className="h-4 w-4" />
-              </a>
+              <div className="flex flex-col gap-2">
+                <a
+                  href={FINTUAL_AFFILIATE}
+                  target="_blank"
+                  rel="noopener sponsored"
+                  onClick={() =>
+                    trackEvent("fintual_cta_clicked", {
+                      source: "acciones_modal",
+                      symbol: selected.symbol,
+                    })
+                  }
+                  className="inline-flex w-full items-center justify-center gap-2 px-6 py-4 rounded-xl bg-[#00D18B] hover:bg-[#00B97A] text-white font-bold text-lg transition-all hover:-translate-y-0.5 shadow-md hover:shadow-[0_0_15px_rgba(0,209,139,0.4)]"
+                >
+                  Abrir cuenta gratis en Fintual →
+                </a>
+                <p className="text-[12px] font-medium text-center text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100">
+                  ⏱ Tarda solo 5 minutos · Desde $1 peso · Sin comisión
+                </p>
+              </div>
               <p className="text-xs text-muted-foreground mt-4 text-center">
                 Esto no es asesoría financiera.
               </p>

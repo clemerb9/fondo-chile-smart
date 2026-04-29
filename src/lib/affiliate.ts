@@ -15,7 +15,7 @@ export const FINTUAL_AFFILIATE = "https://fintual.cl/r/clementer9b";
 
 export function getFundCta(f: Fondo): { href: string; label: string; isAffiliate: boolean } {
   if (f.administradora === "Fintual") {
-    return { href: FINTUAL_AFFILIATE, label: "Invertir", isAffiliate: true };
+    return { href: FINTUAL_AFFILIATE, label: "Abrir cuenta gratis en Fintual →", isAffiliate: true };
   }
   const base = SITES[f.administradora] ?? "https://www.cmfchile.cl";
   const sep = base.includes("?") ? "&" : "?";
