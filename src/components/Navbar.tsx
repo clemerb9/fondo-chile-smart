@@ -8,6 +8,7 @@ const links = [
   { to: "/descubre", label: "Descúbrelo" },
   { to: "/comparador", label: "Comparador" },
   { to: "/acciones", label: "Analiza una acción" },
+  { to: "/analisis", label: "Análisis IA" },
   { to: "/simulador", label: "Simulador" },
   { to: "/indicadores", label: "Indicadores" },
   { to: "/faq", label: "FAQ" },

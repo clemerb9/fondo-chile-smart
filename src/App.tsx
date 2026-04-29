@@ -12,6 +12,7 @@ import Descubre from "./pages/Descubre";
 import Acciones from "./pages/Acciones";
 import Comenzar from "./pages/Comenzar";
 import Indicadores from "./pages/Indicadores";
+import Analisis from "./pages/Analisis";
 import FAQ from "./pages/FAQ";
 import NotFound from "./pages/NotFound.tsx";
 
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/descubre" element={<Descubre />} />
             <Route path="/acciones" element={<Acciones />} />
             <Route path="/comenzar" element={<Comenzar />} />
+            <Route path="/analisis" element={<Analisis />} />
             <Route path="/indicadores" element={<Indicadores />} />
             <Route path="/faq" element={<FAQ />} />
             <Route path="/glosario" element={<Glosario />} />
