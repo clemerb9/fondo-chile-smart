@@ -17,28 +17,25 @@ export default function Analisis() {
     setError(null);
     
     try {
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY,
-          "anthropic-version": "2023-06-01",
-          "anthropic-dangerous-direct-browser-access": "true"
         },
         body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 2000,
-          tools: [{"type": "web_search_20250305", "name": "web_search"}],
-          system: `Eres StockTrace PRO, un analista bursátil experto. 
-    Analiza acciones en español simple para chilenos sin experiencia.
-    Siempre incluye: precio actual, tendencia 30 días, 
-    P/E ratio, veredicto (🟢/🟡/🔴), y próximos catalizadores.
-    Termina siempre con disclaimer: 
-    'Esto no es asesoría financiera.'
-    Sé conciso, máximo 400 palabras.`,
-          messages: [
-            {role: "user", content: `Analiza la acción ${ticker} ahora mismo con datos reales`}
-          ]
+          contents: [{
+            parts: [{
+              text: `Eres StockTrace PRO, un analista bursátil experto.
+      Analiza la acción ${ticker} en español simple para 
+      chilenos sin experiencia financiera.
+      Incluye: precio aproximado actual, tendencia reciente,
+      si está cara o barata, veredicto (🟢/🟡/🔴), 
+      y próximos eventos importantes.
+      Máximo 400 palabras.
+      Termina con: 'Esto no es asesoría financiera.'`
+            }]
+          }]
         })
       });
 
@@ -48,7 +45,7 @@ export default function Analisis() {
       }
 
       const data = await response.json();
-      const textContent = data.content.find((c: any) => c.type === "text")?.text;
+      const textContent = data.candidates?.[0]?.content?.parts?.[0]?.text;
       
       if (textContent) {
         setResult(textContent);
