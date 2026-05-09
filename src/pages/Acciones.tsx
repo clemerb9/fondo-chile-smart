@@ -48,7 +48,10 @@ async function fetchFmpData(symbol: string, range: Range, signal?: AbortSignal):
   const apiKey = FMP_KEY || "demo";
   
   const quoteRes = await fetch(`https://financialmodelingprep.com/api/v3/quote/${symbol}?apikey=${apiKey}`, { signal });
-  if (!quoteRes.ok) throw new Error("Error fetching quote");
+  if (!quoteRes.ok) {
+    const errorText = await quoteRes.text();
+    throw new Error(`Error fetching quote: ${quoteRes.status} ${errorText}`);
+  }
   const quoteData = await quoteRes.json();
   
   if (!quoteData || quoteData.length === 0) {
@@ -65,7 +68,10 @@ async function fetchFmpData(symbol: string, range: Range, signal?: AbortSignal):
   if (range === "3mo") timeseries = 90;
   
   const histRes = await fetch(`https://financialmodelingprep.com/api/v3/historical-price-full/${symbol}?timeseries=${timeseries}&apikey=${apiKey}`, { signal });
-  if (!histRes.ok) throw new Error("Error fetching historical");
+  if (!histRes.ok) {
+    const errorText = await histRes.text();
+    throw new Error(`Error fetching historical: ${histRes.status} ${errorText}`);
+  }
   const histData = await histRes.json();
   
   if (!histData || !histData.historical) {
@@ -490,6 +496,10 @@ function buildExecutiveSummary(
 }
 
 const Acciones = () => {
+  useEffect(() => {
+    console.log('FMP Key:', import.meta.env.VITE_FMP_API_KEY);
+  }, []);
+
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<StockMeta | null>(null);
   const [range, setRange] = useState<Range>("1y");
