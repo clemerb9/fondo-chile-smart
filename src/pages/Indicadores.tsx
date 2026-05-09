@@ -49,14 +49,15 @@ export default function Indicadores() {
 
         const results = await Promise.all(promises);
 
-        const processed: ProcessedIndicator[] = results.map((ind) => {
+        const processed: ProcessedIndicator[] = results.flatMap((ind) => {
           const current = ind.serie[0];
+          if (!current) return [];
           const previous = ind.serie[1] || current; // Fallback if no previous
           
           const variacion = current.valor - previous.valor;
           const variacionPorcentual = previous.valor !== 0 ? (variacion / previous.valor) * 100 : 0;
 
-          return {
+          return [{
             codigo: ind.codigo,
             nombre: ind.nombre,
             valor: current.valor,
@@ -64,7 +65,7 @@ export default function Indicadores() {
             fecha: current.fecha,
             variacion,
             variacionPorcentual,
-          };
+          }];
         });
 
         setData(processed);

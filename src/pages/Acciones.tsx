@@ -333,9 +333,9 @@ function computeVerdict(
   const peHigh = pe != null && pe > 35;
   const peOk = pe == null || pe < 30;
 
-  if (nearHigh && peHigh && tech.trend.dir === "down") {
+  if (nearHigh && pe != null && pe > 35 && tech.trend.dir === "down") {
     reasons.push("Cerca del máximo 52 semanas (dentro del 10%)");
-    reasons.push(`P/E mayor a 35 (${pe!.toFixed(1)})`);
+    reasons.push(`P/E mayor a 35 (${pe.toFixed(1)})`);
     reasons.push(`Tendencia bajista (${tech.change30.toFixed(1)}%)`);
     return { tone: "red", emoji: "🔴", title: "PRECAUCIÓN", reasons };
   }
