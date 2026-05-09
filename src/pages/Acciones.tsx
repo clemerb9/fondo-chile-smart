@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Search, TrendingUp, TrendingDown, Info, ExternalLink, ShieldAlert, X } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
-import { fetchYahooChart, fetchFinnhubData, type ChartResponse, type FinnhubData, type Range } from "@/lib/yahooApi";
 import { FINTUAL_AFFILIATE } from "@/lib/affiliate";
 import { trackEvent } from "@/lib/analytics";
 import {
@@ -14,6 +13,98 @@ import {
   Tooltip as RTooltip,
   CartesianGrid,
 } from "recharts";
+
+type Range = "1mo" | "3mo" | "1y";
+
+export interface ChartPoint {
+  t: number;
+  price: number;
+}
+
+export interface ChartResponse {
+  meta: {
+    symbol: string;
+    currency: string;
+    exchangeName?: string;
+    regularMarketPrice: number;
+    chartPreviousClose: number;
+    fiftyTwoWeekHigh?: number;
+    fiftyTwoWeekLow?: number;
+  };
+  points: ChartPoint[];
+}
+
+export interface FinnhubData {
+  pe: number | null;
+  profile: {
+    name: string | null;
+    finnhubIndustry: string | null;
+  } | null;
+}
+
+const FMP_KEY = import.meta.env.VITE_FMP_API_KEY;
+
+async function fetchFmpData(symbol: string, range: Range, signal?: AbortSignal): Promise<{ chart: ChartResponse, finnhub: FinnhubData }> {
+  const apiKey = FMP_KEY || "demo";
+  
+  const quoteRes = await fetch(`https://financialmodelingprep.com/api/v3/quote/${symbol}?apikey=${apiKey}`, { signal });
+  if (!quoteRes.ok) throw new Error("Error fetching quote");
+  const quoteData = await quoteRes.json();
+  
+  if (!quoteData || quoteData.length === 0) {
+    if (symbol.endsWith(".SN")) {
+      throw new Error("Datos no disponibles para este mercado");
+    }
+    throw new Error("Símbolo no encontrado");
+  }
+  
+  const q = quoteData[0];
+  
+  let timeseries = 365;
+  if (range === "1mo") timeseries = 30;
+  if (range === "3mo") timeseries = 90;
+  
+  const histRes = await fetch(`https://financialmodelingprep.com/api/v3/historical-price-full/${symbol}?timeseries=${timeseries}&apikey=${apiKey}`, { signal });
+  if (!histRes.ok) throw new Error("Error fetching historical");
+  const histData = await histRes.json();
+  
+  if (!histData || !histData.historical) {
+    if (symbol.endsWith(".SN")) {
+      throw new Error("Datos no disponibles para este mercado");
+    }
+    throw new Error("Sin datos históricos");
+  }
+
+  const historical = histData.historical.reverse();
+  
+  const points: ChartPoint[] = historical.map((h: any) => ({
+    t: new Date(h.date).getTime() / 1000,
+    price: h.close
+  }));
+
+  const chart: ChartResponse = {
+    meta: {
+      symbol: q.symbol,
+      currency: symbol.endsWith(".SN") ? "CLP" : "USD",
+      exchangeName: q.exchange,
+      regularMarketPrice: q.price,
+      chartPreviousClose: q.previousClose,
+      fiftyTwoWeekHigh: q.yearHigh,
+      fiftyTwoWeekLow: q.yearLow
+    },
+    points
+  };
+  
+  const finnhub: FinnhubData = {
+    pe: q.pe ?? null,
+    profile: {
+      name: q.name,
+      finnhubIndustry: null 
+    }
+  };
+
+  return { chart, finnhub };
+}
 
 type StockMeta = { symbol: string; label: string; sector: string; description: string };
 
@@ -429,22 +520,20 @@ const Acciones = () => {
     setErr(null);
     setData(null);
     setFinnhub(null);
-    fetchYahooChart(selected.symbol, range, ctrl.signal)
-      .then((res) => setData(res))
+    fetchFmpData(selected.symbol, range, ctrl.signal)
+      .then(({ chart, finnhub }) => {
+        if (!ctrl.signal.aborted) {
+          setData(chart);
+          setFinnhub(finnhub);
+        }
+      })
       .catch((e) => {
         if (ctrl.signal.aborted) return;
         setErr(e instanceof Error ? e.message : "Error al cargar datos");
+        setFinnhub({ pe: null, profile: null });
       })
       .finally(() => {
         if (!ctrl.signal.aborted) setLoading(false);
-      });
-    // Finnhub runs in parallel; failures are silent (we just show "Sin datos").
-    fetchFinnhubData(selected.symbol, ctrl.signal)
-      .then((res) => {
-        if (!ctrl.signal.aborted) setFinnhub(res);
-      })
-      .catch(() => {
-        if (!ctrl.signal.aborted) setFinnhub({ pe: null, profile: null });
       });
     return () => ctrl.abort();
   }, [selected, range]);
