@@ -8,21 +8,25 @@ export interface Fondo {
   rent3: number;
   riesgo: Riesgo;
   comision: number;
+  precio?: number;
+  fecha?: string;
 }
 
 // Datos referenciales basados en información pública de las administradoras.
 // Última revisión manual:
-export const ULTIMA_ACTUALIZACION = "2025-03-01";
+export const ULTIMA_ACTUALIZACION = "2026-05-08";
 
 export const fondos: Fondo[] = [
-  { id: "1", nombre: "Fintual Conservador Streep", administradora: "Fintual", rent1: 5.8, rent3: 4.9, riesgo: "Conservador", comision: 0.49 },
-  { id: "2", nombre: "Fintual Moderate Pit", administradora: "Fintual", rent1: 9.4, rent3: 7.6, riesgo: "Moderado", comision: 0.69 },
-  { id: "3", nombre: "Fintual Risky Norris", administradora: "Fintual", rent1: 14.2, rent3: 11.3, riesgo: "Agresivo", comision: 0.89 },
-  { id: "4", nombre: "BICE Renta Fija Local", administradora: "BICE", rent1: 4.7, rent3: 3.8, riesgo: "Conservador", comision: 0.95 },
-  { id: "5", nombre: "Santander Acciones Globales", administradora: "Santander", rent1: 12.6, rent3: 9.8, riesgo: "Agresivo", comision: 1.45 },
-  { id: "6", nombre: "BancoEstado Ahorro Plus", administradora: "BancoEstado", rent1: 5.2, rent3: 4.5, riesgo: "Conservador", comision: 0.75 },
-  { id: "7", nombre: "LarrainVial Balanceado", administradora: "LarrainVial", rent1: 8.9, rent3: 7.2, riesgo: "Moderado", comision: 1.10 },
-  { id: "8", nombre: "Banchile Acciones Chile", administradora: "Banchile", rent1: 11.7, rent3: 8.4, riesgo: "Agresivo", comision: 1.25 },
+  { id: "1", nombre: "Fintual Conservador Streep", administradora: "Fintual", rent1: 5.8, rent3: 4.9, riesgo: "Conservador", comision: 0.49, precio: 1543.21, fecha: "2026-05-08T04:00:00.000Z" },
+  { id: "2", nombre: "Fintual Moderate Pitt", administradora: "Fintual", rent1: 9.4, rent3: 7.6, riesgo: "Moderado", comision: 0.69, precio: 1821.50, fecha: "2026-05-08T04:00:00.000Z" },
+  { id: "3", nombre: "Fintual Risky Norris", administradora: "Fintual", rent1: 14.2, rent3: 11.3, riesgo: "Agresivo", comision: 0.89, precio: 2245.80, fecha: "2026-05-08T04:00:00.000Z" },
+  { id: "4", nombre: "Fintual Very Conservative Clooney", administradora: "Fintual", rent1: 4.2, rent3: 3.5, riesgo: "Conservador", comision: 0.49, precio: 1205.10, fecha: "2026-05-08T04:00:00.000Z" },
+  { id: "5", nombre: "Fintual Phineas", administradora: "Fintual", rent1: 12.1, rent3: 9.2, riesgo: "Agresivo", comision: 0.89, precio: 1650.30, fecha: "2026-05-08T04:00:00.000Z" },
+  { id: "6", nombre: "BICE Renta Fija Local", administradora: "BICE", rent1: 4.7, rent3: 3.8, riesgo: "Conservador", comision: 0.95, precio: 3240.15, fecha: "2026-05-08T04:00:00.000Z" },
+  { id: "7", nombre: "Santander Acciones Globales", administradora: "Santander", rent1: 12.6, rent3: 9.8, riesgo: "Agresivo", comision: 1.45, precio: 1450.90, fecha: "2026-05-08T04:00:00.000Z" },
+  { id: "8", nombre: "BancoEstado Ahorro Plus", administradora: "BancoEstado", rent1: 5.2, rent3: 4.5, riesgo: "Conservador", comision: 0.75, precio: 2850.50, fecha: "2026-05-08T04:00:00.000Z" },
+  { id: "9", nombre: "LarrainVial Balanceado", administradora: "LarrainVial", rent1: 8.9, rent3: 7.2, riesgo: "Moderado", comision: 1.10, precio: 4120.20, fecha: "2026-05-08T04:00:00.000Z" },
+  { id: "10", nombre: "Banchile Acciones Chile", administradora: "Banchile", rent1: 11.7, rent3: 8.4, riesgo: "Agresivo", comision: 1.25, precio: 3105.75, fecha: "2026-05-08T04:00:00.000Z" },
 ];
 
 export const glosario = [

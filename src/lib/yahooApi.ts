@@ -42,19 +42,11 @@ export async function fetchYahooChart(
   signal?: AbortSignal,
 ): Promise<ChartResponse> {
   const interval = "1d";
-  const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
-  const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
-  const url = `${SUPABASE_URL}/functions/v1/yahoo-finance?symbol=${encodeURIComponent(
-    symbol,
-  )}&range=${range}&interval=${interval}`;
+  // OPTION B: Utilizar proxy CORS allorigins.win directamente hacia Yahoo Finance
+  const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=${interval}&range=${range}&includePrePost=false`;
+  const url = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
 
-  const res = await fetch(url, {
-    signal,
-    headers: {
-      apikey: SUPABASE_KEY,
-      Authorization: `Bearer ${SUPABASE_KEY}`,
-    },
-  });
+  const res = await fetch(url, { signal });
   if (!res.ok) {
     let detail = "";
     try {

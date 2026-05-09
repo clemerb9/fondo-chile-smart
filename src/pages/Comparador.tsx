@@ -64,8 +64,8 @@ const fromMock = (f: Fondo): FundRow => ({
   rent1: f.rent1,
   rent3: f.rent3,
   comision: f.comision,
-  precio: null,
-  fecha: null,
+  precio: f.precio ?? null,
+  fecha: f.fecha ?? null,
 });
 
 const riesgoFilters: ("Todos" | Riesgo)[] = ["Todos", "Conservador", "Moderado", "Agresivo"];
@@ -156,9 +156,9 @@ const Comparador = () => {
             <AlertTriangle className="h-4 w-4" strokeWidth={2.5} />
           </div>
           <div>
-            <p className="text-sm font-semibold text-amber-900">Mostrando datos de referencia · cmfchile.cl</p>
+            <p className="text-sm font-semibold text-amber-900">Datos referenciales Mayo 2026 · cmfchile.cl</p>
             <p className="text-xs text-amber-800 mt-0.5">
-              No pudimos conectar con la API de Fintual. Verifica las cifras en{" "}
+              No pudimos conectar con la API de Fintual en vivo. Estos datos son de referencia. Verifica las cifras actuales en{" "}
               <a href="https://www.cmfchile.cl" target="_blank" rel="noopener noreferrer" className="underline font-medium">
                 cmfchile.cl
               </a>{" "}
